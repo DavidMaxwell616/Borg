@@ -1,0 +1,87 @@
+const TITLE_WIDTH = 871;
+const TITLE_HEIGHT = 142;
+
+let player;
+let cursors;
+let levels;
+let playIntro = true;
+let score = 0;
+let scoreText;
+let lives = 3;
+let livesText;
+let level;
+let currLevel = 1;
+let levelText;
+let title;
+let startGame = false;
+let splash;
+
+let playerSpeed = 250;
+let guardSpeed = 125;
+
+let maxxdaddy;
+let curLevel = 1;
+let curScore = 0;
+let textTimer;
+const guards = [];
+let BORG;
+let showintro = 1;
+let gameOver = false;
+const DEAD = 0;
+const ALIVE = 1;
+const COLOR_WHITE = 'rgb(255,255,255)';
+const GAME_FONT = 'Impact';
+let level1bkgd;
+let level2bkgd;
+let level3bkgd;
+let level4bkgd;
+let amountGuards;
+let runTime = 0;
+let textTiles;
+let levelOver = false;
+let levelOverTimer = 0;
+const textFrames = {
+  ')': 8,
+  '(': 9,
+  '=': 10,
+  '-': 11,
+  '?': 12,
+  '!!': 13,
+  '!': 14,
+  Z: 15,
+  Y: 16,
+  X: 17,
+  W: 18,
+  V: 19,
+  U: 20,
+  T: 21,
+  S: 22,
+  R: 23,
+  Q: 24,
+  P: 25,
+  O: 26,
+  N: 27,
+  M: 28,
+  L: 29,
+  K: 30,
+  J: 31,
+  I: 32,
+  H: 33,
+  G: 34,
+  F: 35,
+  E: 36,
+  D: 37,
+  C: 38,
+  B: 39,
+  A: 40,
+  9: 41,
+  8: 42,
+  7: 43,
+  6: 44,
+  5: 45,
+  4: 46,
+  3: 47,
+  2: 48,
+  1: 49,
+  0: 50,
+};
