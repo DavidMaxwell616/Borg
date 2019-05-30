@@ -23,8 +23,11 @@ function gameCreate() {
   player.dead = false;
   player.body.collideWorldBounds = true;
   player.anchor.set(0.5, 0.5);
-  player.animations.add('runRight', [0, 1, 2], 10, true);
-  player.animations.add('runLeft', [3, 4, 5], 10, true);
+  player.animations.add('runRight', [0, 1, 2, 3], 10, true);
+  player.animations.add('runLeft', [4, 5, 6, 7], 10, true);
+  player.facingRight = true;
+  playerXSpeed = 0;
+  playerYSpeed = 0;
 
   level1bkgd = game.add.sprite(0, 0, 'level 1');
   game.physics.p2.enable(level1bkgd, true);
@@ -58,7 +61,6 @@ function initEnemies() {
 
 }
 
-
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
@@ -70,19 +72,29 @@ function update() {
   player.body.fixedRotation = true;
 
   if (game.cursors.right.isDown) {
-    player.body.velocity.x = 50;
+    player.facingRight = true;
+    playerXSpeed = playerXSpeed === -50 ? 0 : 50;
+    player.body.velocity.x = playerXSpeed;
     player.animations.play('runRight', 10, true);
   }
+
   if (game.cursors.left.isDown) {
-    player.body.velocity.x = -50;
+    player.facingRight = false;
+    playerXSpeed = playerXSpeed === 50 ? 0 : -50;
+    player.body.velocity.x = playerXSpeed;
     player.animations.play('runLeft', 10, true);
   }
   if (game.cursors.up.isDown) {
-    player.body.velocity.y = -50;
+    playerYSpeed = playerYSpeed === 50 ? 0 : -50;
+    player.body.velocity.y = playerYSpeed;
+    player.animations.play('runRight', 10, true);
   }
   if (game.cursors.down.isDown) {
-    player.body.velocity.y = 50;
+    playerYSpeed = playerYSpeed === -50 ? 0 : 50;
+    player.body.velocity.y = playerYSpeed;
+    player.animations.play('runLeft', 10, true);
   }
+
 
   if (game.fireButton.isDown) {}
 

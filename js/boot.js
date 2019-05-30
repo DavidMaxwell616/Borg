@@ -25,6 +25,7 @@ let curScore = 0;
 let textTimer;
 const guards = [];
 let BORG;
+let borgTimer = 0;
 let showintro = 1;
 let gameOver = false;
 const DEAD = 0;
@@ -40,6 +41,8 @@ let runTime = 0;
 let textTiles;
 let levelOver = false;
 let levelOverTimer = 0;
+playerXSpeed = 0;
+playerYSpeed = 0;
 const textFrames = {
   ')': 8,
   '(': 9,
