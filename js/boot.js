@@ -36,7 +36,7 @@ let level1bkgd;
 let level2bkgd;
 let level3bkgd;
 let level4bkgd;
-let amountGuards;
+let numGuards;
 let runTime = 0;
 let textTiles;
 let levelOver = false;

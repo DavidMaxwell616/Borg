@@ -31,15 +31,16 @@ function gameCreate() {
 
   level1bkgd = game.add.sprite(0, 0, 'level 1');
   game.physics.p2.enable(level1bkgd, true);
-  //level1bkgd.anchor.set(0, 0);
   level1bkgd.body.x = game.world.centerX;
-  level1bkgd.body.y = game.world.centerY;
+  level1bkgd.body.y = game.world.centerY + 5;
+  //level1bkgd.anchor.set(0, 0);
   level1bkgd.body.clearShapes();
   level1bkgd.body.loadPolygon("physicsData", "level_1");
   level1bkgd.body.static = true;
   maxxdaddy.visible = false;
 
-  //initEnemies();
+  numGuards = curLevel + 4;
+  initEnemies();
 
   scoreText = game.add.text(16, 16, 'SCORE: 0', {
     fontSize: '18px',
@@ -58,7 +59,14 @@ function gameCreate() {
 }
 
 function initEnemies() {
-
+  for (let index = 0; index < numGuards; index++) {
+    let x = game.rnd.integerInRange(100, game.width - 50);
+    let y = game.rnd.integerInRange(50, 450);
+    guards[index] = game.add.sprite(x, y, 'guard');
+    game.physics.p2.enable(guards[index]);
+    guards[index].body.collideWorldBounds = true;
+    guards[index].anchor.set(0.5, 0.5);
+  }
 }
 
 // the game loop. Game logic lives in here.
@@ -74,29 +82,32 @@ function update() {
   if (game.cursors.right.isDown) {
     player.facingRight = true;
     playerXSpeed = playerXSpeed === -50 ? 0 : 50;
-    player.body.velocity.x = playerXSpeed;
     player.animations.play('runRight', 10, true);
   }
 
   if (game.cursors.left.isDown) {
     player.facingRight = false;
     playerXSpeed = playerXSpeed === 50 ? 0 : -50;
-    player.body.velocity.x = playerXSpeed;
     player.animations.play('runLeft', 10, true);
   }
   if (game.cursors.up.isDown) {
     playerYSpeed = playerYSpeed === 50 ? 0 : -50;
-    player.body.velocity.y = playerYSpeed;
     player.animations.play('runRight', 10, true);
   }
   if (game.cursors.down.isDown) {
     playerYSpeed = playerYSpeed === -50 ? 0 : 50;
-    player.body.velocity.y = playerYSpeed;
     player.animations.play('runLeft', 10, true);
   }
 
 
-  if (game.fireButton.isDown) {}
+  if (game.fireButton.isDown) {
+    player.animations.currentAnim.stop();
+    playerXSpeed = 0;
+    playerYSpeed = 0;
+  }
+
+  player.body.velocity.x = playerXSpeed;
+  player.body.velocity.y = playerYSpeed;
 
 
 }
