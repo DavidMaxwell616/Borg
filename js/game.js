@@ -1,12 +1,24 @@
-const game = new Phaser.Game(1000, 680, Phaser.AUTO, 'game', {
-  preload,
-  create,
-  update,
-  render,
-});
+var config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  parent: 'game',
+  scene: {
+    preload: preload,
+    create: create
+  },
+  physics: {
+    default: "matter",
+    matter: {
+      // debug: true
+    }
+  }
+};
+
+var game = new Phaser.Game(config);
 
 function create() {
-  if (!startGame) mainMenuCreate();
+  if (!startGame) mainMenuCreate(this);
   else gameCreate();
 }
 

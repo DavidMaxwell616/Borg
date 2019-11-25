@@ -1,4 +1,4 @@
-function mainMenuCreate() {
+function mainMenuCreate(game) {
   splash = game.add.image(0, 0, 'splash');
   splash.width = game.width;
   splash.height = game.height;
@@ -6,10 +6,20 @@ function mainMenuCreate() {
   maxxdaddy = game.add.image(game.width * 0.85, game.height * 0.95, 'maxxdaddy');
 
   title = game.add.sprite(0, 0, 'title');
-  title.animations.add('title');
-  title.reset(60, 80);
-  title.animations.play('title', 10, true);
-  game.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+  var animConfig = {
+    key: 'title',
+    frames: game.anims.generateFrameNumbers('title'),
+    frameRate: 6,
+    yoyo: false,
+    repeat: -1
+  };
+
+  var anim = game.anims.create(animConfig);
+  title.setPosition(60, 80);
+  title.anims.load('title');
+  title.anims.play('title');
+  // game.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
 
 function mainMenuUpdate() {

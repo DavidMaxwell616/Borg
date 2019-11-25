@@ -1,30 +1,34 @@
 function preload() {
-  game.load.crossOrigin = 'anonymous';
+  const TITLE_WIDTH = 865;
+  const TITLE_HEIGHT = 142;
 
-  game.scale.pageAlignHorizontally = true;
-  game.scale.pageAlignVertically = true;
-  game.scale.refresh();
+  this.scale.pageAlignHorizontally = true;
+  this.scale.pageAlignVertically = true;
+  this.scale.refresh();
 
-  game.load.image('splash', '../assets/images/splash.png');
-  game.load.image('maxxdaddy', '../assets/images/maxxdaddy.gif');
-  game.load.image('level 1', '../assets/images/level_1.png');
-  game.load.image('level 2', '../assets/images/level_2.png');
-  game.load.image('level 3', '../assets/images/level_3.png');
-  game.load.image('level 4', '../assets/images/level_4.png');
-  game.load.image('level 5', '../assets/images/level_5.png');
-  game.load.image('level 6', '../assets/images/level_6.png');
-  game.load.image('level 7', '../assets/images/level_7.png');
-  game.load.image('level 8', '../assets/images/level_8.png');
-  game.load.image('level 9', '../assets/images/level_9.png');
-  game.load.image('level 10', '../assets/images/level_10.png');
-  game.load.physics('physicsData', 'assets/physics/sprite_physics.json');
-  game.load.spritesheet(
+  this.load.path = '../assets/images/';
+  this.load.image('splash', 'splash.png');
+  this.load.image('maxxdaddy', 'maxxdaddy.gif');
+  this.load.image('level 1', 'level_1.png');
+  this.load.image('level 2', 'level_2.png');
+  this.load.image('level 3', 'level_3.png');
+  this.load.image('level 4', 'level_4.png');
+  this.load.image('level 5', 'level_5.png');
+  this.load.image('level 6', 'level_6.png');
+  this.load.image('level 7', 'level_7.png');
+  this.load.image('level 8', 'level_8.png');
+  this.load.image('level 9', 'level_9.png');
+  this.load.image('level 10', 'level_10.png');
+  this.load.spritesheet(
     'title',
-    'assets/images/title.png',
-    TITLE_WIDTH,
-    TITLE_HEIGHT,
+    'title.png', {
+      frameWidth: TITLE_WIDTH,
+      frameHeight: TITLE_HEIGHT
+    }
   );
 
-  game.load.spritesheet('player', 'assets/images/player.png', 40, 76);
-  game.load.spritesheet('guard', 'assets/images/guard.png', 55, 46);
+  // this.load.spritesheet('player', 'player.png', 40, 76);
+  // this.load.spritesheet('guard', 'guard.png', 55, 46);
+  this.load.path = '../assets/json/';
+  this.load.json('physicsData', 'sprite_physics.json');
 }
