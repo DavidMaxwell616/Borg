@@ -1,32 +1,31 @@
-function mainMenuCreate(game) {
-  splash = game.add.image(0, 0, 'splash');
-  splash.width = game.width;
-  splash.height = game.height;
-
-  maxxdaddy = game.add.image(game.width * 0.85, game.height * 0.95, 'maxxdaddy');
-
-  title = game.add.sprite(0, 0, 'title');
+function mainMenuCreate(scene) {
+  splash = scene.add.image(0, 0, 'splash');
+  var config = scene.game.config;
+  splash.width = config.width;
+  splash.height = config.height;
+  console.log(splash.width);
+  splash.setOrigin(0, 0);
+  maxxdaddy = scene.add.image(config.width * 0.85, config.height * 0.95, 'maxxdaddy');
+  title = scene.add.sprite(0, 0, 'title');
 
   var animConfig = {
     key: 'title',
-    frames: game.anims.generateFrameNumbers('title'),
+    frames: scene.anims.generateFrameNumbers('title'),
     frameRate: 6,
-    yoyo: false,
     repeat: -1
   };
 
-  var anim = game.anims.create(animConfig);
+  var anim = scene.anims.create(animConfig);
+  title.setOrigin(0, 0);
   title.setPosition(60, 80);
   title.anims.load('title');
   title.anims.play('title');
-  // game.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-}
-
-function mainMenuUpdate() {
-  if (game.spaceKey.isDown) {
-    gameCreate();
+  cursorKeys = scene.input.keyboard.createCursorKeys();
+  isSpaceDown = cursorKeys.space.isDown;
+  scene.input.keyboard.on('keydown', function () {
     splash.visible = false;
     title.visible = false;
     startGame = true;
-  }
+    gameCreate(scene);
+  });
 }

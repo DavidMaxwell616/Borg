@@ -1,6 +1,6 @@
 var config = {
   type: Phaser.AUTO,
-  width: 800,
+  width: 900,
   height: 600,
   parent: 'game',
   scene: {
@@ -8,11 +8,14 @@ var config = {
     create: create
   },
   physics: {
-    default: "matter",
+    default: 'matter',
     matter: {
-      // debug: true
+      gravity: {
+        y: 0
+      },
+      debug: true
     }
-  }
+  },
 };
 
 var game = new Phaser.Game(config);
@@ -22,37 +25,57 @@ function create() {
   else gameCreate();
 }
 
-function gameCreate() {
-  // reset the score
-
-  game.cursors = game.input.keyboard.createCursorKeys();
+function gameCreate(scene) {
+  cursorKeys = scene.input.keyboard.createCursorKeys();
+  isUpDown = cursorKeys.up.isDown;
+  isDownDown = cursorKeys.down.isDown;
+  isLeftDown = cursorKeys.left.isDown;
+  isRightDown = cursorKeys.right.isDown;
+  isSpaceDown = cursorKeys.space.isDown;
   score = 0;
-  game.physics.startSystem(Phaser.Physics.P2JS);
-  game.fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-  player = game.add.sprite(50, 240, 'player');
-  game.physics.p2.enable(player);
-  player.dead = false;
+  player = scene.matter.add.sprite(50, 240, 'player');
   player.body.collideWorldBounds = true;
-  player.anchor.set(0.5, 0.5);
-  player.animations.add('runRight', [0, 1, 2, 3], 10, true);
-  player.animations.add('runLeft', [4, 5, 6, 7], 10, true);
+  player.setOrigin(0.5, 0.5);
+
+  scene.anims.create({
+    key: 'runLeft',
+    frames: scene.anims.generateFrameNumbers('player', {
+      start: 0,
+      end: 3
+    }),
+    frameRate: 10,
+    repeat: -1
+  });
+
+  scene.anims.create({
+    key: 'runRight',
+    frames: scene.anims.generateFrameNumbers('player', {
+      start: 4,
+      end: 7
+    }),
+    frameRate: 10,
+    repeat: -1
+  });
+
+  player.anims.load('runLeft');
+  player.anims.load('runRight');
+
   player.facingRight = true;
   playerXSpeed = 0;
   playerYSpeed = 0;
 
-  level1bkgd = game.add.sprite(0, 0, 'level 1');
-  game.physics.p2.enable(level1bkgd, true);
-  level1bkgd.body.x = game.world.centerX;
-  level1bkgd.body.y = game.world.centerY + 5;
-  //level1bkgd.anchor.set(0, 0);
-  level1bkgd.body.clearShapes();
-  level1bkgd.body.loadPolygon("physicsData", "level_1");
-  level1bkgd.body.static = true;
+  level1bkgd = scene.add.image(0, 0, 'level 1');
+  level1bkgd.setOrigin(0, 0);
+  level1bkgd.width = scene.game.config.width;
+  level1bkgd.height = scene.game.config.height * .7;
+  // level1bkgd.body.clearShapes();
+  // level1bkgd.body.loadPolygon("physicsData", "level_1");
+  //level1bkgd.body.static = true;
   maxxdaddy.visible = false;
 
   numGuards = curLevel + 4;
-  initEnemies();
+  initEnemies(scene);
 
   scoreText = game.add.text(16, 16, 'SCORE: 0', {
     fontSize: '18px',
@@ -70,50 +93,45 @@ function gameCreate() {
   });
 }
 
-function initEnemies() {
+function initEnemies(scene) {
   for (let index = 0; index < numGuards; index++) {
-    let x = game.rnd.integerInRange(100, game.width - 50);
-    let y = game.rnd.integerInRange(50, 450);
-    guards[index] = game.add.sprite(x, y, 'guard');
-    game.physics.p2.enable(guards[index]);
+    let x = Phaser.Math.Between(100, scene.game.config.width - 50);
+    let y = Phaser.Math.Between(50, 450);
+    console.log(scene.matter);
+    guards[index] = scene.mattter.add.sprite(x, y, 'guard');
     guards[index].body.collideWorldBounds = true;
-    guards[index].anchor.set(0.5, 0.5);
+    guards[index].setOrigin(0.5, 0.5);
   }
 }
 
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
-  if (!startGame) {
-    mainMenuUpdate();
-    return;
-  }
-
   player.body.fixedRotation = true;
 
-  if (game.cursors.right.isDown) {
+  if (this.cursors.right.isDown) {
     player.facingRight = true;
     playerXSpeed = playerXSpeed === -50 ? 0 : 50;
-    player.animations.play('runRight', 10, true);
+    player.anims.play('runRight', 10, true);
   }
 
-  if (game.cursors.left.isDown) {
+  if (this.cursors.left.isDown) {
     player.facingRight = false;
     playerXSpeed = playerXSpeed === 50 ? 0 : -50;
-    player.animations.play('runLeft', 10, true);
+    player.anims.play('runLeft', 10, true);
   }
-  if (game.cursors.up.isDown) {
+  if (this.cursors.up.isDown) {
     playerYSpeed = playerYSpeed === 50 ? 0 : -50;
-    player.animations.play('runRight', 10, true);
+    player.anims.play('runRight', 10, true);
   }
-  if (game.cursors.down.isDown) {
+  if (this.cursors.down.isDown) {
     playerYSpeed = playerYSpeed === -50 ? 0 : 50;
-    player.animations.play('runLeft', 10, true);
+    player.anims.play('runLeft', 10, true);
   }
 
 
-  if (game.fireButton.isDown) {
-    player.animations.currentAnim.stop();
+  if (this.fireButton.isDown) {
+    player.anims.currentAnim.stop();
     playerXSpeed = 0;
     playerYSpeed = 0;
   }

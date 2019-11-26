@@ -1,5 +1,5 @@
 function preload() {
-  const TITLE_WIDTH = 865;
+  const TITLE_WIDTH = 867;
   const TITLE_HEIGHT = 142;
 
   this.scale.pageAlignHorizontally = true;
@@ -27,8 +27,15 @@ function preload() {
     }
   );
 
-  // this.load.spritesheet('player', 'player.png', 40, 76);
-  // this.load.spritesheet('guard', 'guard.png', 55, 46);
+  this.load.spritesheet('player', 'player.png', {
+    frameWidth: 40,
+    frameHeight: 76
+  }, );
+
+  this.load.spritesheet('guard', 'guard.png', {
+    frameWidth: 55,
+    frameHeight: 46
+  }, );
   this.load.path = '../assets/json/';
   this.load.json('physicsData', 'sprite_physics.json');
 }

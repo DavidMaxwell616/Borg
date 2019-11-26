@@ -23,7 +23,7 @@ let maxxdaddy;
 let curLevel = 1;
 let curScore = 0;
 let textTimer;
-const guards = [];
+let guards = [];
 let BORG;
 let borgTimer = 0;
 let showintro = 1;
