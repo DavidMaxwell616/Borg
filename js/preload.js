@@ -8,6 +8,7 @@ function preload() {
 
   this.load.path = '../assets/images/';
   this.load.image('splash', 'splash.png');
+  this.load.image('scoreboard', 'scoreboard.png');
   this.load.image('maxxdaddy', 'maxxdaddy.gif');
   this.load.image('level 1', 'level_1.png');
   this.load.image('level 2', 'level_2.png');

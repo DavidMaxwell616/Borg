@@ -27,11 +27,7 @@ function create() {
 
 function gameCreate(scene) {
   cursorKeys = scene.input.keyboard.createCursorKeys();
-  isUpDown = cursorKeys.up.isDown;
-  isDownDown = cursorKeys.down.isDown;
-  isLeftDown = cursorKeys.left.isDown;
-  isRightDown = cursorKeys.right.isDown;
-  isSpaceDown = cursorKeys.space.isDown;
+
   score = 0;
 
   player = scene.matter.add.sprite(50, 240, 'player');
@@ -67,70 +63,92 @@ function gameCreate(scene) {
 
   level1bkgd = scene.add.image(0, 0, 'level 1');
   level1bkgd.setOrigin(0, 0);
-  level1bkgd.width = scene.game.config.width;
-  level1bkgd.height = scene.game.config.height * .7;
+  //level1bkgd.width = scene.game.config.width;
+  //level1bkgd.height = scene.game.config.height * .7;
+  level1bkgd.setDisplaySize(scene.game.config.width, scene.game.config.height * .7);
   // level1bkgd.body.clearShapes();
   // level1bkgd.body.loadPolygon("physicsData", "level_1");
   //level1bkgd.body.static = true;
   maxxdaddy.visible = false;
 
+  scoreboard = scene.add.image(0, scene.game.config.height * .7, 'scoreboard');
+  scoreboard.setOrigin(0, 0);
+  //level1bkgd.width = scene.game.config.width;
+  //level1bkgd.height = scene.game.config.height * .7;
+  scoreboard.setDisplaySize(scene.game.config.width, scene.game.config.height * .3);
+
   numGuards = curLevel + 4;
   initEnemies(scene);
 
-  scoreText = game.add.text(16, 16, 'SCORE: 0', {
+  scoreText = scene.add.text(scene.game.config.width * .31, scene.game.config.height * .85, 'SCORE: 0', {
+    fontFamily: 'Arial',
     fontSize: '18px',
     fill: '#eee',
   });
 
-  livesText = game.add.text(game.width * 0.45, 16, 'LIVES: 3', {
+  livesText = scene.add.text(scene.game.config.width * .63, scene.game.config.height * .85, 'LIVES: 3', {
+    fontFamily: 'Arial',
     fontSize: '18px',
     fill: '#eee',
   });
 
-  levelText = game.add.text(game.width * 0.89, 16, 'LEVEL: 1', {
+  levelText = scene.add.text(scene.game.config.width * .75, scene.game.config.height * .85, 'LEVEL: 1', {
+    fontFamily: 'Arial',
     fontSize: '18px',
     fill: '#eee',
   });
 }
 
 function initEnemies(scene) {
+  let physics = scene.matter;
   for (let index = 0; index < numGuards; index++) {
     let x = Phaser.Math.Between(100, scene.game.config.width - 50);
     let y = Phaser.Math.Between(50, 450);
-    console.log(scene.matter);
-    guards[index] = scene.mattter.add.sprite(x, y, 'guard');
+    guards[index] = physics.add.sprite(x, y, 'guard');
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5);
   }
 }
 
+function moveEnemies(scene) {
+  for (let index = 0; index < numGuards; index++) {
+    if (player.y < guards[index].y)
+      guards[index].y--;
+    else if (player.y > guards[index].y)
+      guards[index].y++;
+    else if (player.x < guards[index].x)
+      guards[index].x--;
+    else if (player.x > guards[index].x)
+      guards[index].x++;
+  }
+}
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
   player.body.fixedRotation = true;
 
-  if (this.cursors.right.isDown) {
+  if (cursorKeys.right.isDown) {
     player.facingRight = true;
     playerXSpeed = playerXSpeed === -50 ? 0 : 50;
-    player.anims.play('runRight', 10, true);
+    player.anims.play('runRight');
   }
 
-  if (this.cursors.left.isDown) {
+  if (cursorKeys.left.isDown) {
     player.facingRight = false;
     playerXSpeed = playerXSpeed === 50 ? 0 : -50;
-    player.anims.play('runLeft', 10, true);
+    player.anims.play('runLeft');
   }
-  if (this.cursors.up.isDown) {
+  if (cursorKeys.up.isDown) {
     playerYSpeed = playerYSpeed === 50 ? 0 : -50;
-    player.anims.play('runRight', 10, true);
+    player.anims.play('runRight');
   }
-  if (this.cursors.down.isDown) {
+  if (cursorKeys.down.isDown) {
     playerYSpeed = playerYSpeed === -50 ? 0 : 50;
-    player.anims.play('runLeft', 10, true);
+    player.anims.play('runLeft');
   }
 
 
-  if (this.fireButton.isDown) {
+  if (cursorKeys.space.isDown) {
     player.anims.currentAnim.stop();
     playerXSpeed = 0;
     playerYSpeed = 0;
@@ -139,6 +157,7 @@ function update() {
   player.body.velocity.x = playerXSpeed;
   player.body.velocity.y = playerYSpeed;
 
+  moveEnemies(this);
 
 }
 
