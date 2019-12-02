@@ -18,10 +18,12 @@ function mainMenuCreate(scene) {
   title.setPosition(10, 80);
   title.anims.load('title');
   title.anims.play('title');
-  cursorKeys = scene.input.keyboard.createCursorKeys();
-  isSpaceDown = cursorKeys.space.isDown;
+  //cursorKeys = scene.input.keyboard.createCursorKeys();
+  //isSpaceDown = cursorKeys.space.isDown;
   scene.scale.resize(config.width, config.height);
   scene.input.keyboard.on('keydown', function () {
+    if (startGame)
+      return;
     splash.visible = false;
     title.visible = false;
     startGame = true;

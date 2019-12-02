@@ -18,6 +18,7 @@ let splash;
 
 let playerSpeed = 250;
 let guardSpeed = 125;
+const runSpeed = 1;
 
 let maxxdaddy;
 let curLevel = 1;

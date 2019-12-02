@@ -20,6 +20,7 @@ function preload() {
   this.load.image('level 8', 'level_8.png');
   this.load.image('level 9', 'level_9.png');
   this.load.image('level 10', 'level_10.png');
+
   this.load.spritesheet(
     'title',
     'title.png', {
@@ -38,5 +39,6 @@ function preload() {
     frameHeight: 46
   }, );
   this.load.path = '../assets/json/';
-  this.load.json('physicsData', 'sprite_physics.json');
+  this.load.json('level1Body', 'level_1.json');
+
 }
