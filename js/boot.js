@@ -20,6 +20,8 @@ let playerSpeed = 250;
 let guardSpeed = 125;
 const runSpeed = 1;
 
+let levelData;
+let objectData;
 let maxxdaddy;
 let curLevel = 1;
 let curScore = 0;

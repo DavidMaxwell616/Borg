@@ -1,7 +1,7 @@
 var config = {
   type: Phaser.AUTO,
   width: 900,
-  height: 600,
+  height: 500,
   parent: 'game',
   scene: {
     preload: preload,
@@ -28,8 +28,10 @@ function create() {
 
 function gameCreate(scene) {
   cursorKeys = scene.input.keyboard.createCursorKeys();
-  var level1Body = scene.cache.json.get('Level1Body');
+
   score = 0;
+
+  objectData = scene.cache.json.get('levelData');
 
   player = scene.matter.add.sprite(50, 240, 'player');
   player.setOrigin(0.5, 0.5);
@@ -68,7 +70,7 @@ function gameCreate(scene) {
   //level1bkgd.height = scene.game.config.height * .7;
   level1bkgd.setDisplaySize(
     scene.game.config.width,
-    scene.game.config.height * 0.7,
+    400,
   );
   // level1bkgd.body.clearShapes();
   // level1bkgd.body.loadPolygon("physicsData", "level_1");
@@ -84,8 +86,11 @@ function gameCreate(scene) {
     scene.game.config.height * 0.3,
   );
 
+
+
   numGuards = curLevel + 4;
   initEnemies(scene);
+  loadLevel(scene, curLevel);
 
   scoreText = scene.add.text(
     scene.game.config.width * 0.31,
@@ -126,6 +131,49 @@ function initEnemies(scene) {
     guards[index] = physics.add.sprite(x, y, 'guard');
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5);
+  }
+}
+
+function loadLevel(scene, level) {
+  levelData = objectData['level_' + level];
+  for (let index = 0; index < levelData.length; index++) {
+    var level = {
+      polygons: [],
+    };
+    var vertices = levelData[index].shape;
+    let polyObject = [];
+    for (let i = 0; i < vertices.length / 2; i++) {
+      polyObject.push({
+        x: vertices[i * 2],
+        y: vertices[i * 2 + 1],
+      });
+    }
+
+    let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
+    var verts = scene.matter.verts.fromPath(vertices.join(' '));
+    const xScale = 1;
+    const yScale = 1;
+    for (let i = 0; i < verts.length; i++) {
+      (verts[i].x -= centre.x) * -1 * xScale;
+      (verts[i].y -= centre.y) * -1 * yScale;
+    }
+    var poly = scene.add.polygon(
+      centre.x * xScale,
+      centre.y * yScale,
+      verts,
+      0x0000ff,
+    );
+    level.polygons.push(poly);
+    scene.matter.add
+      .gameObject(poly, {
+        shape: {
+          type: 'fromVerts',
+          verts,
+          flagInternal: true,
+        },
+      })
+      .setStatic(true)
+      .setOrigin(0, 0);
   }
 }
 

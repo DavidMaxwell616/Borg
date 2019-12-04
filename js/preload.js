@@ -39,6 +39,6 @@ function preload() {
     frameHeight: 46
   }, );
   this.load.path = '../assets/json/';
-  this.load.json('level1Body', 'level_1.json');
+  this.load.json('levelData', 'level_data.json');
 
 }
