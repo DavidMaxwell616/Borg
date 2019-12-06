@@ -28,7 +28,7 @@ function preload() {
       frameHeight: TITLE_HEIGHT
     }
   );
-
+  this.load.image('bullet', 'bullet.png');
   this.load.spritesheet('player', 'player.png', {
     frameWidth: 40,
     frameHeight: 76

@@ -30,36 +30,24 @@ function gameCreate(scene) {
   cursorKeys = scene.input.keyboard.createCursorKeys();
 
   score = 0;
-
   objectData = scene.cache.json.get('levelData');
 
   player = scene.matter.add.sprite(50, 240, 'player');
   player.setOrigin(0.5, 0.5);
+  player.body.collideWorldBounds = true;
 
-  scene.anims.create({
-    key: 'runLeft',
-    frames: scene.anims.generateFrameNumbers('player', {
+  this.anims.create({
+    key: 'run',
+    frames: this.anims.generateFrameNumbers('player', {
       start: 0,
-      end: 3,
+      end: 2
     }),
     frameRate: 10,
-    repeat: -1,
+    repeat: -1
   });
 
-  scene.anims.create({
-    key: 'runRight',
-    frames: scene.anims.generateFrameNumbers('player', {
-      start: 4,
-      end: 7,
-    }),
-    frameRate: 10,
-    repeat: -1,
-  });
+  player.anims.load('run');
 
-  player.anims.load('runLeft');
-  player.anims.load('runRight');
-
-  player.facingRight = true;
   playerXSpeed = 0;
   playerYSpeed = 0;
   scene.matter.world.setBounds(0, 0, scene.game.config.width, scene.game.config.height);
@@ -123,6 +111,15 @@ function gameCreate(scene) {
   );
 }
 
+function shootBullet(scene, direction) {
+  var bullet = scene.matter.add.sprite(player.x, player.y, 'bullet');
+  bullet.setVelocityX(direction.xv * 10);
+  bullet.setVelocityY(direction.yv);
+  player.flipX = direction.xv < 0;
+  var frame = 3 + direction.yv;
+  player.setFrame(frame);
+}
+
 function initEnemies(scene) {
   let physics = scene.matter;
   for (let index = 0; index < numGuards; index++) {
@@ -132,6 +129,22 @@ function initEnemies(scene) {
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5);
   }
+}
+
+function fryPlayer(scene) {
+  // Set the visibility to 0 i.e. hide the player
+  // Add a tween that 'blinks' until the player is gradually visible
+  player.setAlpha(0);
+  let tw = scene.tweens.add({
+    targets: player,
+    alpha: 1,
+    duration: 200,
+    ease: 'Linear',
+    repeat: 5,
+  });
+  player.x = 150;
+  player.y = 150;
+  player.rotate = 0;
 }
 
 function loadLevel(scene, level) {
@@ -151,8 +164,8 @@ function loadLevel(scene, level) {
 
     let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
     var verts = scene.matter.verts.fromPath(vertices.join(' '));
-    const xScale = 1;
-    const yScale = 1;
+    const xScale = .9;
+    const yScale = .82;
     for (let i = 0; i < verts.length; i++) {
       (verts[i].x -= centre.x) * -1 * xScale;
       (verts[i].y -= centre.y) * -1 * yScale;
@@ -188,31 +201,36 @@ function moveEnemies(scene) {
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
-  if (!startGame) return;
+  if (playerXSpeed == 0 && playerYSpeed == 0)
+    player.setFrame(0);
 
-  //player.body.fixedRotation = true;
-  if (cursorKeys.right.isDown) {
-    player.facingRight = true;
-    playerXSpeed = playerXSpeed === -runSpeed ? 0 : runSpeed;
-    player.anims.play('runRight');
+  if (cursorKeys.right.isDown && playerXSpeed != 1) {
+    playerXSpeed = playerXSpeed === -1 ? 0 : 1;
+    player.anims.play('run');
+    player.flipX = false;
+  }
+  if (cursorKeys.left.isDown && playerXSpeed != -1) {
+    playerXSpeed = playerXSpeed === 1 ? 0 : -1;
+    player.flipX = true;
+    player.anims.play('run');
+  }
+  if (cursorKeys.up.isDown && playerYSpeed != -1) {
+    playerYSpeed = playerYSpeed === 1 ? 0 : -1;
+    player.anims.play('run');
+  }
+  if (cursorKeys.down.isDown && playerYSpeed != 1) {
+    playerYSpeed = playerYSpeed === -1 ? 0 : 1;
+    player.anims.play('run');
   }
 
-  if (cursorKeys.left.isDown) {
-    player.facingRight = false;
-    playerXSpeed = playerXSpeed === runSpeed ? 0 : -runSpeed;
-    player.anims.play('runLeft');
-  }
-  if (cursorKeys.up.isDown) {
-    playerYSpeed = playerYSpeed === runSpeed ? 0 : -runSpeed;
-    player.anims.play('runRight');
-  }
-  if (cursorKeys.down.isDown) {
-    playerYSpeed = playerYSpeed === -runSpeed ? 0 : runSpeed;
-    player.anims.play('runLeft');
-  }
 
   if (cursorKeys.space.isDown) {
     player.anims.pause(player.anims.currentAnim.frames[0]);
+    bulletDirection = {
+      xv: playerXSpeed,
+      yv: playerYSpeed
+    };
+    shootBullet(this, bulletDirection);
     playerXSpeed = 0;
     playerYSpeed = 0;
   }
