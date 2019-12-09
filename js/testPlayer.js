@@ -17,13 +17,15 @@ var config = {
       debug: false,
     },
   },
-  plugins: {
-    scene: [{
-      plugin: PhaserMatterCollisionPlugin, // The plugin class
-      key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
-      mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
-    }]
-  }
+  // plugins: {
+  //   scene: [
+  //     {
+  //       plugin: PhaserMatterCollisionPlugin, // The plugin class
+  //       key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+  //       mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
+  //     }
+  //   ]
+  // }
 };
 
 var game = new Phaser.Game(config);
@@ -31,10 +33,11 @@ var player;
 var cursorKeys;
 var playerXSpeed;
 var playerYSpeed;
-var bulletDirection = {
-  xv: 1,
-  yv: 0
-};
+var shooting;
+var particles;
+var rightWall;
+var running;
+var standing;
 
 function preload() {
   this.load.path = '../assets/images/';
@@ -43,36 +46,20 @@ function preload() {
     frameHeight: 76
   }, );
   this.load.image('bullet', 'bullet.png');
+  this.load.atlas('flares', 'flares.png', '../json/flares.json');
 }
 
 function create() {
-  cursorKeys = this.input.keyboard.createCursorKeys();
+  //cursorKeys = this.input.keyboard.createCursorKeys();
   player = this.matter.add.sprite(150, 150, 'player');
   let bounds = this.matter.world.setBounds(0, 0, 300, 300);
+  rightWall = bounds.walls.right;
   player.body.collideWorldBounds = true;
-
-  this.matterCollision.addOnCollideStart({
-    objectA: player,
-    objectB: bounds.walls.right,
-    callback: function (eventData) {
-      // This function will be invoked any time the player and trap door collide
-      const {
-        bodyA,
-        bodyB,
-        gameObjectA,
-        gameObjectB,
-        pair
-      } = eventData;
-      fryPlayer(this);
-      // bodyA & bodyB are the Matter bodies of the player and door respectively
-      // gameObjectA & gameObjectB are the player and door respectively
-      // pair is the raw Matter pair data
-    },
-    context: this // Context to apply to the callback function
-  });
-
+  // this.matter.world.on('collisionstart', function (event, player, rightWall) {
+  //  // console.log(event);
+  //   fryPlayer(this);
+  // });
   player.setOrigin(0.5, 0.5);
-
   this.anims.create({
     key: 'run',
     frames: this.anims.generateFrameNumbers('player', {
@@ -84,69 +71,96 @@ function create() {
   });
 
   player.anims.load('run');
+  player.facing = {
+    vert: 0,
+    horiz: 1
+  };
   playerXSpeed = 0;
   playerYSpeed = 0;
-}
 
-function fryPlayer(scene) {
-  // Set the visibility to 0 i.e. hide the player
-  // Add a tween that 'blinks' until the player is gradually visible
-  player.setAlpha(0);
-  let tw = scene.tweens.add({
-    targets: player,
-    alpha: 1,
-    duration: 200,
-    ease: 'Linear',
-    repeat: 5,
-  });
-  player.x = 150;
-  player.y = 150;
-  player.rotate = 0;
-}
-
-function shootBullet(scene, direction) {
-  var bullet = scene.matter.add.sprite(player.x, player.y, 'bullet');
-  bullet.setVelocityX(direction.xv * 10);
-  bullet.setVelocityY(direction.yv);
-  player.flipX = direction.xv < 0;
-  var frame = 3 + direction.yv;
-  player.setFrame(frame);
-}
-
-function update() {
-  if (playerXSpeed == 0 && playerYSpeed == 0)
-    player.setFrame(0);
-
-  if (cursorKeys.right.isDown && playerXSpeed != 1) {
-    playerXSpeed = playerXSpeed === -1 ? 0 : 1;
-    player.anims.play('run');
-    player.flipX = false;
-  }
-  if (cursorKeys.left.isDown && playerXSpeed != -1) {
-    playerXSpeed = playerXSpeed === 1 ? 0 : -1;
+  this.input.keyboard.on('keydown_LEFT', function (event) {
+    movePlayer(-1, 0);
     player.flipX = true;
-    player.anims.play('run');
-  }
-  if (cursorKeys.up.isDown && playerYSpeed != -1) {
-    playerYSpeed = playerYSpeed === 1 ? 0 : -1;
-    player.anims.play('run');
-  }
-  if (cursorKeys.down.isDown && playerYSpeed != 1) {
-    playerYSpeed = playerYSpeed === -1 ? 0 : 1;
-    player.anims.play('run');
-  }
+  });
 
+  this.input.keyboard.on('keydown_RIGHT', function (event) {
+    movePlayer(1, 0);
+    player.flipX = false;
+  });
 
-  if (cursorKeys.space.isDown) {
-    player.anims.pause(player.anims.currentAnim.frames[0]);
+  this.input.keyboard.on('keydown_UP', function (event) {
+    movePlayer(0, -1)
+  });
+
+  this.input.keyboard.on('keydown_DOWN', function (event) {
+    movePlayer(0, 1);
+  });
+
+  this.input.keyboard.on('keydown_SPACE', function (event) {
     bulletDirection = {
       xv: playerXSpeed,
       yv: playerYSpeed
     };
-    shootBullet(this, bulletDirection);
+    var frame = 3 + bulletDirection.yv;
+    player.anims.pause(player.anims.currentAnim.frames[frame]);
+    var bullet = this.matter.add.sprite(0, 0, 'bullet');
+    shootBullet(this, bullet, bulletDirection);
     playerXSpeed = 0;
     playerYSpeed = 0;
+    shooting = true;
+  }, this);
+  this.input.keyboard.on('keyup_SPACE', function (event) {
+    shooting = false;
+  });
+}
+
+function movePlayer(xv, yv) {
+  if (xv != 0) {
+    if (playerXSpeed === -xv) {
+      playerXSpeed = 0;
+      player.anims.pause(player.anims.currentAnim.frames[0]);
+    } else if (playerXSpeed === 0) {
+      playerXSpeed = xv;
+      player.anims.play('run');
+    }
   }
+  if (yv != 0) {
+    if (playerYSpeed === -yv) {
+      playerYSpeed = 0;
+      player.anims.pause(player.anims.currentAnim.frames[0]);
+    } else if (playerYSpeed === 0) {
+      playerYSpeed = yv;
+      player.anims.play('run');
+    }
+  }
+}
+
+function fryPlayer(scene) {
+  // console.log(scene);
+  // particles = scene.scene.add.particles('flares');
+
+  // var emitter = particles.createEmitter({
+  //     frame: [ 'red', 'blue', 'green', 'yellow' ],
+  //     x: player.x,
+  //     y: player.y,
+  //     speed: 200,
+  //     lifespan: 100,
+  //     blendMode: 'ADD'
+  // });
+
+}
+
+function shootBullet(scene, bullet, direction) {
+  bullet.setPosition(player.x, player.y);
+  bullet.setVelocityX(direction.xv * 10);
+  bullet.setVelocityY(direction.yv * 10);
+  bullet.label = 'bullet';
+  player.flipX = direction.xv < 0;
+}
+
+function update() {
+  if (playerXSpeed === 0 && playerYSpeed === 0)
+    player.anims.pause(player.anims.currentAnim.frames[0]);
 
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);

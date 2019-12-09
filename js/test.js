@@ -1,6 +1,6 @@
 var config = {
   type: Phaser.AUTO,
-  width: 1000,
+  width: 900,
   height: 600,
   parent: 'game',
   scene: {
@@ -31,12 +31,16 @@ function preload() {
 
 function create() {
   var level = 1;
-  loadLevel(this, level);
+  level1bkgd = this.add.image(0, 0, 'level '+ level);
+  level1bkgd.setOrigin(0, 0);
+  level1bkgd.visible = false;
+ // level1bkgd.setDisplaySize(this.game.config.width, this.game.config.height );
+    loadLevel(this, level);
 }
 
 function loadLevel(scene, level) {
   let data = scene.cache.json.get('levelData');
-  let levelData = data['level_' + level];
+  let levelData = data['level_'+level];
   for (let index = 0; index < levelData.length; index++) {
     var level = {
       polygons: [],
@@ -50,19 +54,21 @@ function loadLevel(scene, level) {
       });
     }
 
-    let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
+    let centre = Phaser.Physics.Matter.Matter.Vertices.centre(
+      polyObject,
+    );
     var verts = scene.matter.verts.fromPath(vertices.join(' '));
-    const xScale = 1;
-    const yScale = 1;
+    const xScale = .9;
+    const yScale = .84;
     for (let i = 0; i < verts.length; i++) {
-      (verts[i].x -= centre.x) * -1 * xScale;
-      (verts[i].y -= centre.y) * -1 * yScale;
+      ((verts[i].x -= centre.x) * -1) * xScale;
+      ((verts[i].y -= centre.y) * -1) * yScale;
     }
     var poly = scene.add.polygon(
       centre.x * xScale,
       centre.y * yScale,
       verts,
-      0x0000ff,
+      0x0000ff,1
     );
     level.polygons.push(poly);
     scene.matter.add
@@ -73,8 +79,16 @@ function loadLevel(scene, level) {
           flagInternal: true,
         },
       })
+      .setStatic(true)
       .setOrigin(0, 0);
+
+      var level1bkgd = scene.add.image(0, 0, 'level 1');
+      level1bkgd.setOrigin(0, 0);
+      level1bkgd.setDisplaySize(scene.game.config.width, scene.game.config.height * .7);
   }
 }
 
-function update() {}
+
+function update() {
+
+}

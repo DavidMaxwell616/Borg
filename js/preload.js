@@ -20,7 +20,7 @@ function preload() {
   this.load.image('level 8', 'level_8.png');
   this.load.image('level 9', 'level_9.png');
   this.load.image('level 10', 'level_10.png');
-
+  this.load.image('bullet', 'bullet.png');
   this.load.spritesheet(
     'title',
     'title.png', {
@@ -28,7 +28,7 @@ function preload() {
       frameHeight: TITLE_HEIGHT
     }
   );
-  this.load.image('bullet', 'bullet.png');
+
   this.load.spritesheet('player', 'player.png', {
     frameWidth: 40,
     frameHeight: 76
@@ -40,5 +40,4 @@ function preload() {
   }, );
   this.load.path = '../assets/json/';
   this.load.json('levelData', 'level_data.json');
-
 }

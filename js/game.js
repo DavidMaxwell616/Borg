@@ -27,18 +27,17 @@ function create() {
 }
 
 function gameCreate(scene) {
-  cursorKeys = scene.input.keyboard.createCursorKeys();
-
   score = 0;
   objectData = scene.cache.json.get('levelData');
 
-  player = scene.matter.add.sprite(50, 240, 'player');
+  player = scene.matter.add.sprite(xStart, yStart, 'player');
   player.setOrigin(0.5, 0.5);
+  player.setScale(.9);
   player.body.collideWorldBounds = true;
 
-  this.anims.create({
+  scene.anims.create({
     key: 'run',
-    frames: this.anims.generateFrameNumbers('player', {
+    frames: scene.anims.generateFrameNumbers('player', {
       start: 0,
       end: 2
     }),
@@ -51,30 +50,14 @@ function gameCreate(scene) {
   playerXSpeed = 0;
   playerYSpeed = 0;
   scene.matter.world.setBounds(0, 0, scene.game.config.width, scene.game.config.height);
-  level1bkgd = scene.add.image(0, 0, 'level 1');
-  level1bkgd.setOrigin(0, 0);
-
-  //level1bkgd.width = scene.game.config.width;
-  //level1bkgd.height = scene.game.config.height * .7;
-  level1bkgd.setDisplaySize(
-    scene.game.config.width,
-    400,
-  );
-  // level1bkgd.body.clearShapes();
-  // level1bkgd.body.loadPolygon("physicsData", "level_1");
-  //level1bkgd.body.static = true;
   maxxdaddy.visible = false;
 
-  scoreboard = scene.add.image(0, scene.game.config.height * 0.7, 'scoreboard');
+  scoreboard = scene.add.image(0, scene.game.config.height * 0.8, 'scoreboard');
   scoreboard.setOrigin(0, 0);
-  //level1bkgd.width = scene.game.config.width;
-  //level1bkgd.height = scene.game.config.height * .7;
   scoreboard.setDisplaySize(
     scene.game.config.width,
-    scene.game.config.height * 0.3,
+    scene.game.config.height * 0.2,
   );
-
-
 
   numGuards = curLevel + 4;
   initEnemies(scene);
@@ -82,7 +65,7 @@ function gameCreate(scene) {
 
   scoreText = scene.add.text(
     scene.game.config.width * 0.31,
-    scene.game.config.height * 0.85,
+    scene.game.config.height * 0.89,
     'SCORE: 0', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -92,7 +75,7 @@ function gameCreate(scene) {
 
   livesText = scene.add.text(
     scene.game.config.width * 0.63,
-    scene.game.config.height * 0.85,
+    scene.game.config.height * 0.89,
     'LIVES: 3', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -102,22 +85,79 @@ function gameCreate(scene) {
 
   levelText = scene.add.text(
     scene.game.config.width * 0.75,
-    scene.game.config.height * 0.85,
+    scene.game.config.height * 0.89,
     'LEVEL: 1', {
       fontFamily: 'Arial',
       fontSize: '18px',
       fill: '#eee',
     },
   );
+
+  scene.input.keyboard.on('keydown_LEFT', function (event) {
+    movePlayer(-1, 0);
+    player.flipX = true;
+  });
+
+  scene.input.keyboard.on('keydown_RIGHT', function (event) {
+    movePlayer(1, 0);
+    player.flipX = false;
+  });
+
+  scene.input.keyboard.on('keydown_UP', function (event) {
+    movePlayer(0, -1)
+  });
+
+  scene.input.keyboard.on('keydown_DOWN', function (event) {
+    movePlayer(0, 1);
+  });
+
+  scene.input.keyboard.on('keydown_SPACE', function (event) {
+    bulletDirection = {
+      xv: playerXSpeed,
+      yv: playerYSpeed
+    };
+    var frame = 3 + bulletDirection.yv;
+    player.anims.pause(player.anims.currentAnim.frames[frame]);
+    var bullet = scene.matter.add.sprite(0, 0, 'bullet');
+    shootBullet(scene, bullet, bulletDirection);
+    playerXSpeed = 0;
+    playerYSpeed = 0;
+    shooting = true;
+  }, scene);
+
+  scene.input.keyboard.on('keyup_SPACE', function (event) {
+    shooting = false;
+  });
+
 }
 
-function shootBullet(scene, direction) {
-  var bullet = scene.matter.add.sprite(player.x, player.y, 'bullet');
+function movePlayer(xv, yv) {
+  if (xv != 0) {
+    if (playerXSpeed === -xv) {
+      playerXSpeed = 0;
+      player.anims.pause(player.anims.currentAnim.frames[0]);
+    } else if (playerXSpeed === 0) {
+      playerXSpeed = xv;
+      player.anims.play('run');
+    }
+  }
+  if (yv != 0) {
+    if (playerYSpeed === -yv) {
+      playerYSpeed = 0;
+      player.anims.pause(player.anims.currentAnim.frames[0]);
+    } else if (playerYSpeed === 0) {
+      playerYSpeed = yv;
+      player.anims.play('run');
+    }
+  }
+}
+
+function shootBullet(bullet, direction) {
+  bullet.setPosition(player.x, player.y);
   bullet.setVelocityX(direction.xv * 10);
-  bullet.setVelocityY(direction.yv);
+  bullet.setVelocityY(direction.yv * 10);
+  bullet.label = 'bullet';
   player.flipX = direction.xv < 0;
-  var frame = 3 + direction.yv;
-  player.setFrame(frame);
 }
 
 function initEnemies(scene) {
@@ -134,14 +174,14 @@ function initEnemies(scene) {
 function fryPlayer(scene) {
   // Set the visibility to 0 i.e. hide the player
   // Add a tween that 'blinks' until the player is gradually visible
-  player.setAlpha(0);
-  let tw = scene.tweens.add({
-    targets: player,
-    alpha: 1,
-    duration: 200,
-    ease: 'Linear',
-    repeat: 5,
-  });
+  // player.setAlpha(0);
+  // let tw = scene.tweens.add({
+  //   targets: player,
+  //   alpha: 1,
+  //   duration: 200,
+  //   ease: 'Linear',
+  //   repeat: 5,
+  // });
   player.x = 150;
   player.y = 150;
   player.rotate = 0;
@@ -149,6 +189,13 @@ function fryPlayer(scene) {
 
 function loadLevel(scene, level) {
   levelData = objectData['level_' + level];
+  levelBkgd = scene.add.image(0, 0, 'level ' + level);
+  levelBkgd.setOrigin(0, 0);
+  levelBkgd.setDisplaySize(
+    scene.game.config.width,
+    400,
+  );
+  levelBkgd.setDepth(100);
   for (let index = 0; index < levelData.length; index++) {
     var level = {
       polygons: [],
@@ -165,7 +212,7 @@ function loadLevel(scene, level) {
     let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
     var verts = scene.matter.verts.fromPath(vertices.join(' '));
     const xScale = .9;
-    const yScale = .82;
+    const yScale = .84;
     for (let i = 0; i < verts.length; i++) {
       (verts[i].x -= centre.x) * -1 * xScale;
       (verts[i].y -= centre.y) * -1 * yScale;
@@ -174,10 +221,10 @@ function loadLevel(scene, level) {
       centre.x * xScale,
       centre.y * yScale,
       verts,
-      0x0000ff,
+      0x0000ff, .1,
     );
     level.polygons.push(poly);
-    scene.matter.add
+    var objBody = scene.matter.add
       .gameObject(poly, {
         shape: {
           type: 'fromVerts',
@@ -188,6 +235,10 @@ function loadLevel(scene, level) {
       .setStatic(true)
       .setOrigin(0, 0);
   }
+  // scene.matter.world.on('collisionstart', function (event, player, objBody) {
+  //   // console.log(event);
+  //   fryPlayer(this);
+  // });
 }
 
 function moveEnemies(scene) {
@@ -201,40 +252,11 @@ function moveEnemies(scene) {
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
-  if (playerXSpeed == 0 && playerYSpeed == 0)
-    player.setFrame(0);
-
-  if (cursorKeys.right.isDown && playerXSpeed != 1) {
-    playerXSpeed = playerXSpeed === -1 ? 0 : 1;
-    player.anims.play('run');
-    player.flipX = false;
-  }
-  if (cursorKeys.left.isDown && playerXSpeed != -1) {
-    playerXSpeed = playerXSpeed === 1 ? 0 : -1;
-    player.flipX = true;
-    player.anims.play('run');
-  }
-  if (cursorKeys.up.isDown && playerYSpeed != -1) {
-    playerYSpeed = playerYSpeed === 1 ? 0 : -1;
-    player.anims.play('run');
-  }
-  if (cursorKeys.down.isDown && playerYSpeed != 1) {
-    playerYSpeed = playerYSpeed === -1 ? 0 : 1;
-    player.anims.play('run');
-  }
-
-
-  if (cursorKeys.space.isDown) {
+  if (!startGame)
+    return;
+  if (playerXSpeed === 0 && playerYSpeed === 0)
     player.anims.pause(player.anims.currentAnim.frames[0]);
-    bulletDirection = {
-      xv: playerXSpeed,
-      yv: playerYSpeed
-    };
-    shootBullet(this, bulletDirection);
-    playerXSpeed = 0;
-    playerYSpeed = 0;
-  }
-
+  player.angle = 0;
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
 
@@ -249,16 +271,7 @@ function restart() {
 }
 
 function render() {
-  //if (level1bkgd != null)
-  //  game.debug.body(level1bkgd);
-  //  game.debug.bodyInfo(player, 32, 132);
-  //  game.debug.body(player);
-  // bricks.forEach(brick => {
-  //   game.debug.body(brick);
-  // });
-  // guards.forEach(guard => {
-  //   game.debug.body(guard);
-  // });
+
 }
 
 function restartGame() {
