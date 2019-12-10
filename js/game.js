@@ -152,7 +152,8 @@ function movePlayer(xv, yv) {
   }
 }
 
-function shootBullet(bullet, direction) {
+function shootBullet(scene, bullet, direction) {
+  console.log(scene);
   bullet.setPosition(player.x, player.y);
   bullet.setVelocityX(direction.xv * 10);
   bullet.setVelocityY(direction.yv * 10);
@@ -211,8 +212,6 @@ function loadLevel(scene, level) {
 
     let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
     var verts = scene.matter.verts.fromPath(vertices.join(' '));
-    const xScale = .9;
-    const yScale = .84;
     for (let i = 0; i < verts.length; i++) {
       (verts[i].x -= centre.x) * -1 * xScale;
       (verts[i].y -= centre.y) * -1 * yScale;
