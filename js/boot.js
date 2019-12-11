@@ -21,7 +21,7 @@ let xScale = .9;
 let yScale = .8;
 
 let maxxdaddy;
-let curLevel = 2;
+let curLevel = 1;
 let curScore = 0;
 let textTimer;
 let guards = [];

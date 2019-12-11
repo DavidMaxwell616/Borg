@@ -31,13 +31,14 @@ function preload() {
 
   this.load.spritesheet('player', 'player.png', {
     frameWidth: 40,
-    frameHeight: 76
+    frameHeight: 57
   }, );
 
   this.load.spritesheet('guard', 'guard.png', {
     frameWidth: 55,
     frameHeight: 46
   }, );
+  this.load.atlas('flares', 'flares.png', '../json/flares.json');
   this.load.path = '../assets/json/';
   this.load.json('levelData', 'level_data.json');
 }

@@ -153,7 +153,6 @@ function movePlayer(xv, yv) {
 }
 
 function shootBullet(scene, bullet, direction) {
-  console.log(scene);
   bullet.setPosition(player.x, player.y);
   bullet.setVelocityX(direction.xv * 10);
   bullet.setVelocityY(direction.yv * 10);
@@ -173,19 +172,22 @@ function initEnemies(scene) {
 }
 
 function fryPlayer(scene) {
-  // Set the visibility to 0 i.e. hide the player
-  // Add a tween that 'blinks' until the player is gradually visible
-  // player.setAlpha(0);
-  // let tw = scene.tweens.add({
-  //   targets: player,
-  //   alpha: 1,
-  //   duration: 200,
-  //   ease: 'Linear',
-  //   repeat: 5,
-  // });
-  player.x = 150;
-  player.y = 150;
-  player.rotate = 0;
+  particles = scene.scene.add.particles('flares');
+  player.visible = false;
+  var emitter = particles.createEmitter({
+    frame: ['red', 'blue', 'green', 'yellow'],
+    x: player.x,
+    y: player.y,
+    speed: 200,
+    lifespan: 200,
+    blendMode: 'ADD'
+  });
+  scene.scene.time.delayedCall(500, () => {
+    emitter.stop();
+    player.visible = true;
+    player.setPosition(xStart, yStart);
+  });
+
 }
 
 function loadLevel(scene, level) {
@@ -234,10 +236,10 @@ function loadLevel(scene, level) {
       .setStatic(true)
       .setOrigin(0, 0);
   }
-  // scene.matter.world.on('collisionstart', function (event, player, objBody) {
-  //   // console.log(event);
-  //   fryPlayer(this);
-  // });
+  scene.matter.world.on('collisionstart', function (event, player, objBody) {
+    // console.log(event);
+    fryPlayer(this);
+  });
 }
 
 function moveEnemies(scene) {
