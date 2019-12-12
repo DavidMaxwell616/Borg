@@ -10,7 +10,6 @@ let scoreText;
 let lives = 3;
 let livesText;
 let level;
-let currLevel = 1;
 let levelText;
 let title;
 let startGame = false;
@@ -19,7 +18,7 @@ let xStart = 40;
 let yStart = 200;
 let xScale = .9;
 let yScale = .8;
-
+let objects = [];
 let maxxdaddy;
 let curLevel = 1;
 let curScore = 0;

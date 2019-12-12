@@ -129,6 +129,10 @@ function gameCreate(scene) {
     shooting = false;
   });
 
+  // scene.matter.world.on('collisionstart', function (event, player, objects) {
+  //   fryPlayer(this);
+  // });
+
 }
 
 function movePlayer(xv, yv) {
@@ -154,10 +158,15 @@ function movePlayer(xv, yv) {
 
 function shootBullet(scene, bullet, direction) {
   bullet.setPosition(player.x, player.y);
-  bullet.setVelocityX(direction.xv * 10);
-  bullet.setVelocityY(direction.yv * 10);
-  bullet.label = 'bullet';
+  bullet.setVelocityX(direction.xv * 5);
+  bullet.setVelocityY(direction.yv * 5);
   player.flipX = direction.xv < 0;
+  scene.matter.world.on('collisionstart', function (event, objects, bullet) {
+    bullet.destroy();
+  });
+  // scene.matter.world.on('collisionstart', function (event, bullet, guards) {
+  //   console.log('shot guard');
+  // });
 }
 
 function initEnemies(scene) {
@@ -167,8 +176,14 @@ function initEnemies(scene) {
     let y = Phaser.Math.Between(50, 450);
     guards[index] = physics.add.sprite(x, y, 'guard');
     guards[index].body.collideWorldBounds = true;
-    guards[index].setOrigin(0.5, 0.5);
+    guards[index].setOrigin(0.5, 0.5).setScale(xScale, yScale);
   }
+}
+
+function updateStats() {
+  levelText.setText('LEVEL: ' + curLevel);
+  scoreText.setText('SCORE: ' + score);
+  livesText.setText('LIVES: ' + lives);
 }
 
 function fryPlayer(scene) {
@@ -236,10 +251,7 @@ function loadLevel(scene, level) {
       .setStatic(true)
       .setOrigin(0, 0);
   }
-  scene.matter.world.on('collisionstart', function (event, player, objBody) {
-    // console.log(event);
-    fryPlayer(this);
-  });
+  objects.push(objBody);
 }
 
 function moveEnemies(scene) {
@@ -260,7 +272,7 @@ function update() {
   player.angle = 0;
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
-
+  updateStats();
   moveEnemies(this);
 }
 
