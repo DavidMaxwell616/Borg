@@ -45,7 +45,7 @@ function gameCreate(scene) {
     frameRate: 10,
     repeat: -1
   });
-
+  player.setFixedRotation();
   player.anims.load('run');
   playerXSpeed = 0;
   playerYSpeed = 0;
@@ -61,7 +61,7 @@ function gameCreate(scene) {
 
   numGuards = curLevel + 4;
   initEnemies(scene);
-  loadLevel(scene, curLevel);
+  buildLevel(scene, curLevel);
 
   BORG = scene.matter.add.sprite(xStart, 500, 'borg');
   BORG.setOrigin(0.5, 0.5);
@@ -122,7 +122,7 @@ function gameCreate(scene) {
       yv: playerYSpeed
     };
     var frame = 3 + bulletDirection.yv;
-    player.anims.pause(player.anims.currentAnim.frames[frame]);
+    player.setFrame(frame);
     var bullet = scene.matter.add.sprite(0, 0, 'bullet');
     bullet.body.label = 'bullet';
     shootBullet(scene, bullet, bulletDirection);
@@ -140,34 +140,31 @@ function gameCreate(scene) {
       var bodyA = getRootBody(event.pairs[i].bodyA);
       var bodyB = getRootBody(event.pairs[i].bodyB);
       if (bodyA.label == 'bullet' && bodyB.label == 'obstacle') {
-        bodyA.visible = false;
-        bodyA.destroy();
-      }
-      if (bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
-        bodyB.visible = false;
-        bodyB.destroy();
-      }
-      if (bodyA.label == 'bullet' && bodyB.label == 'guard') {
+        bodyA.gameObject.destroy();
+        scene.matter.world.remove(bodyA);
+      } else if (bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
+        bodyB.gameObject.destroy();
+        scene.matter.world.remove(bodyB);
+      } else if (bodyA.label == 'bullet' && bodyB.label == 'guard') {
         killGuard(scene, bodyB);
-        bodyA.destroy();
-      }
-      if (bodyB.label == 'bullet' && bodyA.label == 'guard') {
+        bodyA.gameObject.destroy();
+        scene.matter.world.remove(bodyA);
+      } else if (bodyB.label == 'bullet' && bodyA.label == 'guard') {
         killGuard(scene, bodyA);
-        bodyB.destroy();
-      }
-      if (bodyA.label == 'player' && bodyB.label == 'obstacle') {
+        bodyB.gameObject.destroy();
+        scene.matter.world.remove(bodyB);
+      } else if (bodyA.label == 'player' && bodyB.label == 'obstacle') {
         fryPlayer(scene);
-      }
-      if (bodyB.label == 'player' && bodyA.label == 'obstacle') {
+      } else if (bodyB.label == 'player' && bodyA.label == 'obstacle') {
         fryPlayer(scene);
-      }
-      if (bodyA.label == 'player' && bodyB.label == 'guard') {
-        killGuard(scene, bodyB);
+      } else if (bodyA.label == 'player' && bodyB.label == 'guard') {
         fryPlayer(scene);
-      }
-      if (bodyB.label == 'player' && bodyA.label == 'guard') {
-        killGuard(scene, bodyA);
+        bodyB.gameObject.destroy();
+        scene.matter.world.remove(bodyB);
+      } else if (bodyB.label == 'player' && bodyA.label == 'guard') {
         fryPlayer(scene);
+        bodyA.gameObject.destroy();
+        scene.matter.world.remove(bodyA);
       }
     }
   });
@@ -199,15 +196,36 @@ function shootBullet(scene, bullet, direction) {
   bullet.setPosition(player.x, player.y);
   bullet.setVelocityX(direction.xv * 5);
   bullet.setVelocityY(direction.yv * 5);
-  player.flipX = direction.xv < 0;
+  bullet.setFrictionAir(0);
+}
+
+function guardShoot(scene, guard, direction) {
+  var bullet = scene.matter.add.sprite(0, 0, 'bullet');
+  bullet.body.label = 'bullet';
+  bullet.setPosition(guard.x, guard.y);
+  bullet.setVelocityX(direction.xv * 5);
+  bullet.setVelocityY(direction.yv * 5);
+  bullet.setFrictionAir(0);
 }
 
 function initEnemies(scene) {
   let physics = scene.matter;
   for (let index = 0; index < numGuards; index++) {
-    let x = Phaser.Math.Between(100, scene.game.config.width - 50);
-    let y = Phaser.Math.Between(50, 450);
-    guards[index] = physics.add.sprite(x, y, 'guard');
+    let x = Phaser.Math.Between(200, scene.game.config.width - 50);
+    let y = Phaser.Math.Between(50, 350);
+    guards[index] = scene.matter.add.sprite(x, y, 'guard');
+
+    scene.anims.create({
+      key: 'guardRun',
+      frames: scene.anims.generateFrameNumbers('guard', {
+        start: 0,
+        end: 1
+      }),
+      frameRate: 10,
+      repeat: -1
+    });
+    guards[index].setFixedRotation();
+    guards[index].anims.load('guardRun');
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5).setScale(xScale, yScale);
     guards[index].body.label = 'guard';
@@ -235,7 +253,8 @@ function killGuard(scene, guard) {
   makeExplosion(scene, guard.position.x, guard.position.y);
   scene.time.delayedCall(500, () => {
     emitter.stop();
-    guard.destroy();
+    guard.gameObject.destroy();
+    scene.matter.world.remove(guard);
     guardsLeft--;
     score += 50;
   });
@@ -254,10 +273,10 @@ function makeExplosion(scene, x, y) {
 
 }
 
-function loadLevel(scene, level) {
+function buildLevel(scene, level) {
   borgTimer = 500;
   levelData = objectData['level_' + level];
-  levelBkgd = scene.add.image(0, 0, 'level ' + level);
+  levelBkgd = scene.add.sprite(0, 0, 'level ' + level);
   levelBkgd.setOrigin(0, 0);
   levelBkgd.setDisplaySize(
     scene.game.config.width,
@@ -284,7 +303,7 @@ function loadLevel(scene, level) {
       centre.x * xScale,
       centre.y * yScale,
       verts,
-      0x0000ff, .5,
+      0x0000ff, 0,
     );
     var objBody = scene.matter.add
       .gameObject(
@@ -313,40 +332,98 @@ function getRootBody(body) {
 
 function moveEnemies(scene) {
   for (let index = 0; index < numGuards; index++) {
-    if (player.y < guards[index].y) guards[index].y--;
-    else if (player.y > guards[index].y) guards[index].y++;
-    else if (player.x < guards[index].x) guards[index].x--;
-    else if (player.x > guards[index].x) guards[index].x++;
+    if (guards[index].active) {
+      var guardXMove = 0;
+      var guardYMove = 0;
+      if (player.y < guards[index].y)
+        guardYMove = -1;
+      else if (player.y > guards[index].y)
+        guardYMove = 1;
+      else if (player.x < guards[index].x) {
+        guards[index].flipX = false;
+        guardXMove = -1;
+      } else if (player.x > guards[index].x) {
+        guards[index].flipX = true;
+        guardXMove = -1;
+      }
+      guards[index].x += guardXMove;
+      guards[index].y += guardYMove;
+      if (guardXMove != 0 || guardYMove != 0)
+        guards[index].anims.play('guardRun');
+      else
+        guards[index].anims.pause(guards[index].anims.currentAnim.frames[0]);
+      let shoot = Phaser.Math.Between(1, 200);
+      if (shoot == 200) {
+        bulletDirection = {
+          xv: guardXMove,
+          yv: guardYMove
+        };
+        guardShoot(scene, guards[index], bulletDirection)
+      }
+    }
   }
 }
 
 function moveBORG() {
-  BORG.setVelocityX(10);
-
+  BORG.setVelocityX(1);
+  BORG.setVelocityY(borgYV);
+  if (BORG.x > 400)
+    BORG.setPosition(borgXStart, borgYStart);
+  if (Math.abs(borgYPath - BORG.y) < 20)
+    BORG.setFrame(1);
+  else
+    BORG.setFrame(0);
+  if (BORG.y > borgYPath)
+    borgYV = -5;
+  borgYV += .1;
 }
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
   if (!startGame)
     return;
-  if (borgTimer > 0)
-    borgTimer--;
+  // if (borgTimer > 0)
+  //   borgTimer--;
   if (borgTimer == 0 && !BORG.visible) {
     BORG.visible = true;
     BORG.setPosition(xStart, yStart);
   }
+
+  if (lives == 0)
+    restartGame();
+
+  if (player.x > 885) {
+    if (guardsLeft > 0)
+      player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
+    else {
+      clearLevel(this);
+      curLevel++;
+      buildLevel(this, curLevel);
+      numGuards = curLevel + 4;
+      guardsLeft = numGuards;
+      initEnemies(this);
+    }
+  }
+
   if (BORG.visible)
     moveBORG();
   if (playerXSpeed === 0 && playerYSpeed === 0)
     player.anims.pause(player.anims.currentAnim.frames[0]);
-  player.angle = 0;
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
   updateStats();
   moveEnemies(this);
 }
 
-function clearLevel() {}
+function clearLevel(scene) {
+  let bodies = scene.matter.world.localWorld.bodies;
+  for (let index = 0; index < bodies.length; index++) {
+    let body = bodies[index];
+    if (body.gameObject != null)
+      body.gameObject.destroy();
+    scene.matter.world.remove(body);
+  }
+}
 
 function restart() {
   lives--;
@@ -358,5 +435,6 @@ function render() {
 }
 
 function restartGame() {
+  startGame = false;
   game.state.start(game.state.current);
 }

@@ -30,8 +30,8 @@ function preload() {
   );
 
   this.load.spritesheet('player', 'player.png', {
-    frameWidth: 40,
-    frameHeight: 57
+    frameWidth: 30,
+    frameHeight: 54
   }, );
 
   this.load.spritesheet('borg', 'borg.png', {
