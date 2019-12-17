@@ -47,6 +47,8 @@ function gameCreate(scene) {
   });
   player.setFixedRotation();
   player.anims.load('run');
+  cat1 = scene.matter.world.nextCategory();
+  player.setCollisionCategory(cat1);
   playerXSpeed = 0;
   playerYSpeed = 0;
   scene.matter.world.setBounds(0, 0, scene.game.config.width, scene.game.config.height);
@@ -67,6 +69,9 @@ function gameCreate(scene) {
   BORG.setOrigin(0.5, 0.5);
   BORG.body.label = 'BORG';
   BORG.visible = false;
+  cat2 = scene.matter.world.nextCategory();
+
+  BORG.setCollisionCategory(cat2);
 
   scoreText = scene.add.text(
     scene.game.config.width * 0.31,
@@ -118,14 +123,15 @@ function gameCreate(scene) {
 
   scene.input.keyboard.on('keydown_SPACE', function (event) {
     bulletDirection = {
-      xv: playerXSpeed,
-      yv: playerYSpeed
+      xv: playerXSpeed * 5,
+      yv: playerYSpeed * 5
     };
-    var frame = 3 + bulletDirection.yv;
+    var frame = 2 + bulletDirection.yv;
     player.setFrame(frame);
     var bullet = scene.matter.add.sprite(0, 0, 'bullet');
     bullet.body.label = 'bullet';
-    shootBullet(scene, bullet, bulletDirection);
+    var frame = setFrame(playerXSpeed, playerYSpeed);
+    shootBullet(scene, bullet, bulletDirection, frame);
     playerXSpeed = 0;
     playerYSpeed = 0;
     shooting = true;
@@ -135,6 +141,7 @@ function gameCreate(scene) {
     shooting = false;
   });
 
+
   scene.matter.world.on('collisionstart', function (event) {
     for (var i = 0; i < event.pairs.length; i++) {
       var bodyA = getRootBody(event.pairs[i].bodyA);
@@ -143,11 +150,13 @@ function gameCreate(scene) {
         bodyA.gameObject.destroy();
         scene.matter.world.remove(bodyA);
       } else if (bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
-        bodyB.gameObject.destroy();
+        if (bodyB.gameObject != null)
+          bodyB.gameObject.destroy();
         scene.matter.world.remove(bodyB);
       } else if (bodyA.label == 'bullet' && bodyB.label == 'guard') {
         killGuard(scene, bodyB);
-        bodyA.gameObject.destroy();
+        if (bodyA.gameObject != null)
+          bodyA.gameObject.destroy();
         scene.matter.world.remove(bodyA);
       } else if (bodyB.label == 'bullet' && bodyA.label == 'guard') {
         killGuard(scene, bodyA);
@@ -171,6 +180,17 @@ function gameCreate(scene) {
 
 }
 
+function setFrame(xv, yv) {
+  if (yv == 0 && xv != 0)
+    return 0;
+  else if (xv == 0 && yv != 0)
+    return 1;
+  else if ((xv > 0 && yv > 0) || (xv < 0 && yv < 0))
+    return 2;
+  else
+    return 3;
+}
+
 function movePlayer(xv, yv) {
   if (xv != 0) {
     if (playerXSpeed === -xv) {
@@ -192,20 +212,24 @@ function movePlayer(xv, yv) {
   }
 }
 
-function shootBullet(scene, bullet, direction) {
-  bullet.setPosition(player.x, player.y);
-  bullet.setVelocityX(direction.xv * 5);
-  bullet.setVelocityY(direction.yv * 5);
+function shootBullet(scene, bullet, direction, frame) {
+  bullet.setPosition(player.x + direction.xv, player.y + direction.yv);
+  bullet.setVelocityX(direction.xv);
+  bullet.setVelocityY(direction.yv);
   bullet.setFrictionAir(0);
+  bullet.setCollisionCategory(cat1);
+  bullet.setFrame(frame);
 }
 
-function guardShoot(scene, guard, direction) {
+function guardShoot(scene, guard, direction, frame) {
   var bullet = scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'bullet';
-  bullet.setPosition(guard.x, guard.y);
+  bullet.setPosition(guard.x + direction.xv, guard.y + direction.yv);
   bullet.setVelocityX(direction.xv * 5);
   bullet.setVelocityY(direction.yv * 5);
   bullet.setFrictionAir(0);
+  bullet.setCollisionCategory(cat1);
+  bullet.setFrame(frame);
 }
 
 function initEnemies(scene) {
@@ -226,6 +250,8 @@ function initEnemies(scene) {
     });
     guards[index].setFixedRotation();
     guards[index].anims.load('guardRun');
+    guards[index].setCollisionCategory(cat1);
+
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5).setScale(xScale, yScale);
     guards[index].body.label = 'guard';
@@ -317,6 +343,8 @@ function buildLevel(scene, level) {
       .setStatic(true)
       .setOrigin(0, 0);
     objBody.body.label = 'obstacle';
+    objBody.setCollisionCategory(cat1);
+
   }
 }
 
@@ -355,10 +383,11 @@ function moveEnemies(scene) {
       let shoot = Phaser.Math.Between(1, 200);
       if (shoot == 200) {
         bulletDirection = {
-          xv: guardXMove,
-          yv: guardYMove
+          xv: guardXMove * 5,
+          yv: guardYMove * 5
         };
-        guardShoot(scene, guards[index], bulletDirection)
+        var frame = setFrame(guardXMove, guardYMove);
+        guardShoot(scene, guards[index], bulletDirection, frame)
       }
     }
   }
@@ -382,15 +411,15 @@ function moveBORG() {
 function update() {
   if (!startGame)
     return;
-  // if (borgTimer > 0)
-  //   borgTimer--;
+  if (borgTimer > 0)
+    borgTimer--;
   if (borgTimer == 0 && !BORG.visible) {
     BORG.visible = true;
     BORG.setPosition(xStart, yStart);
   }
 
   if (lives == 0)
-    restartGame();
+    restartGame(this);
 
   if (player.x > 885) {
     if (guardsLeft > 0)
@@ -434,7 +463,7 @@ function render() {
 
 }
 
-function restartGame() {
+function restartGame(scene) {
   startGame = false;
-  game.state.start(game.state.current);
+  scene.game.state.start(game.state.current);
 }

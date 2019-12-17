@@ -44,6 +44,9 @@ let textTiles;
 let levelOver = false;
 let levelOverTimer = 0;
 let emitter;
+let cat1;
+let cat2;
+
 playerXSpeed = 0;
 playerYSpeed = 0;
 const textFrames = {

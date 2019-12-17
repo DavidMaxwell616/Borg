@@ -20,7 +20,6 @@ function preload() {
   this.load.image('level 8', 'level_8.png');
   this.load.image('level 9', 'level_9.png');
   this.load.image('level 10', 'level_10.png');
-  this.load.image('bullet', 'bullet.png');
   this.load.spritesheet(
     'title',
     'title.png', {
@@ -32,6 +31,11 @@ function preload() {
   this.load.spritesheet('player', 'player.png', {
     frameWidth: 30,
     frameHeight: 54
+  }, );
+
+  this.load.spritesheet('bullet', 'bullet.png', {
+    frameWidth: 10,
+    frameHeight: 10
   }, );
 
   this.load.spritesheet('borg', 'borg.png', {
