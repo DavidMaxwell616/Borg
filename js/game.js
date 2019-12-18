@@ -49,6 +49,8 @@ function gameCreate(scene) {
   player.anims.load('run');
   cat1 = scene.matter.world.nextCategory();
   player.setCollisionCategory(cat1);
+  cat2 = scene.matter.world.nextCategory();
+  player.setCollidesWith([cat1, cat2]);
   playerXSpeed = 0;
   playerYSpeed = 0;
   scene.matter.world.setBounds(0, 0, scene.game.config.width, scene.game.config.height);
@@ -69,9 +71,8 @@ function gameCreate(scene) {
   BORG.setOrigin(0.5, 0.5);
   BORG.body.label = 'BORG';
   BORG.visible = false;
-  cat2 = scene.matter.world.nextCategory();
-
   BORG.setCollisionCategory(cat2);
+  BORG.setCollidesWith(cat2);
 
   scoreText = scene.add.text(
     scene.game.config.width * 0.31,
@@ -279,7 +280,8 @@ function killGuard(scene, guard) {
   makeExplosion(scene, guard.position.x, guard.position.y);
   scene.time.delayedCall(500, () => {
     emitter.stop();
-    guard.gameObject.destroy();
+    if (guard.gameObject != null)
+      guard.gameObject.destroy();
     scene.matter.world.remove(guard);
     guardsLeft--;
     score += 50;
@@ -394,9 +396,11 @@ function moveEnemies(scene) {
 }
 
 function moveBORG() {
-  BORG.setVelocityX(1);
+  if (player.x > BORG.x)
+    BORG.setVelocityX(1);
   BORG.setVelocityY(borgYV);
-  if (BORG.x > 400)
+  BORG.setDepth(0);
+  if (BORG.x > 900)
     BORG.setPosition(borgXStart, borgYStart);
   if (Math.abs(borgYPath - BORG.y) < 20)
     BORG.setFrame(1);
@@ -405,14 +409,20 @@ function moveBORG() {
   if (BORG.y > borgYPath)
     borgYV = -5;
   borgYV += .1;
+
+  if (player.y > BORG.y)
+    borgYPath += .1;
+  if (player.y < BORG.y)
+    borgYPath -= .1;
+
 }
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
   if (!startGame)
     return;
-  if (borgTimer > 0)
-    borgTimer--;
+  // if (borgTimer > 0)
+  //   borgTimer--;
   if (borgTimer == 0 && !BORG.visible) {
     BORG.visible = true;
     BORG.setPosition(xStart, yStart);
@@ -421,17 +431,19 @@ function update() {
   if (lives == 0)
     restartGame(this);
 
-  if (player.x > 885) {
-    if (guardsLeft > 0)
-      player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
-    else {
-      clearLevel(this);
-      curLevel++;
-      buildLevel(this, curLevel);
-      numGuards = curLevel + 4;
-      guardsLeft = numGuards;
-      initEnemies(this);
-    }
+  if (player.x > 85 && curLevel == 1) {
+    // if (guardsLeft > 0)
+    //   player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
+    // else {
+    clearLevel(this);
+    player.setPosition(xStart, yStart);
+    curLevel++;
+
+    // buildLevel(this, curLevel);
+    // numGuards = curLevel + 4;
+    // guardsLeft = numGuards;
+    // initEnemies(this);
+    //  }
   }
 
   if (BORG.visible)
@@ -448,9 +460,11 @@ function clearLevel(scene) {
   let bodies = scene.matter.world.localWorld.bodies;
   for (let index = 0; index < bodies.length; index++) {
     let body = bodies[index];
-    if (body.gameObject != null)
-      body.gameObject.destroy();
-    scene.matter.world.remove(body);
+    if (body.label != 'player') {
+      if (body.gameObject != null)
+        body.gameObject.destroy();
+      scene.matter.world.remove(body);
+    }
   }
 }
 
