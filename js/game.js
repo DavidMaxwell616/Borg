@@ -346,7 +346,7 @@ function buildLevel(scene, level) {
       .setOrigin(0, 0);
     objBody.body.label = 'obstacle';
     objBody.setCollisionCategory(cat1);
-
+    polys.push(poly);
   }
 }
 
@@ -439,7 +439,7 @@ function update() {
     player.setPosition(xStart, yStart);
     curLevel++;
 
-    // buildLevel(this, curLevel);
+    //buildLevel(this, curLevel);
     // numGuards = curLevel + 4;
     // guardsLeft = numGuards;
     // initEnemies(this);

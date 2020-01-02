@@ -46,6 +46,7 @@ let levelOverTimer = 0;
 let emitter;
 let cat1;
 let cat2;
+let polys = [];
 
 playerXSpeed = 0;
 playerYSpeed = 0;
