@@ -29,7 +29,7 @@ function create() {
 function gameCreate(scene) {
   score = 0;
   objectData = scene.cache.json.get('levelData');
-
+  polygons = scene.add.group()
   player = scene.matter.add.sprite(xStart, yStart, 'player');
   player.setOrigin(0.5, 0.5);
   player.setScale(.9);
@@ -346,7 +346,7 @@ function buildLevel(scene, level) {
       .setOrigin(0, 0);
     objBody.body.label = 'obstacle';
     objBody.setCollisionCategory(cat1);
-    polys.push(poly);
+    polygons.add(poly);
   }
 }
 
@@ -457,15 +457,14 @@ function update() {
 }
 
 function clearLevel(scene) {
-  let bodies = scene.matter.world.localWorld.bodies;
-  for (let index = 0; index < bodies.length; index++) {
-    let body = bodies[index];
-    if (body.label != 'player') {
-      if (body.gameObject != null)
-        body.gameObject.destroy();
-      scene.matter.world.remove(body);
-    }
-  }
+  polygons.children.each(object => {
+    object.destroy();
+  })
+
+  var graphics = scene.add.graphics();
+  var rect = new Phaser.Geom.Rectangle(0, 0, scene.game.config.width, 400);
+  graphics.fillStyle(0x000000, 1); // color: 0xRRGGBB
+  graphics.fillRectShape(rect);
 }
 
 function restart() {

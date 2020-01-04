@@ -47,9 +47,10 @@ let emitter;
 let cat1;
 let cat2;
 let polys = [];
+let polygons;
 
-playerXSpeed = 0;
-playerYSpeed = 0;
+let playerXSpeed = 0;
+let playerYSpeed = 0;
 const textFrames = {
   ')': 8,
   '(': 9,

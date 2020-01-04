@@ -20,6 +20,7 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+var polygons = [];
 
 function preload() {
   this.load.path = '../assets/json/';
@@ -47,8 +48,8 @@ function create() {
   loadLevel(this, level);
   this.input.keyboard.on('keydown_SPACE', function (event) {
     clearLevel(this);
-    level++;
-    loadLevel(this, level);
+    // level++;
+    // loadLevel(this, level);
   }, this);
 }
 
@@ -56,7 +57,6 @@ function loadLevel(scene, level) {
   let data = scene.cache.json.get('levelData');
   let levelData = data['level_' + level];
   for (let index = 0; index < levelData.length; index++) {
-    var polygons = [];
     var vertices = levelData[index].shape;
     let polyObject = [];
     for (let i = 0; i < vertices.length / 2; i++) {
@@ -93,7 +93,6 @@ function loadLevel(scene, level) {
       })
       .setStatic(true)
       .setOrigin(0, 0);
-    console.log(level);
     var level1bkgd = scene.add.image(0, 0, 'level ' + level);
     level1bkgd.setOrigin(0, 0);
     level1bkgd.setDisplaySize(scene.game.config.width, scene.game.config.height * .7);
@@ -102,6 +101,7 @@ function loadLevel(scene, level) {
 
 function clearLevel(scene) {
   let bodies = scene.matter.world.localWorld.bodies;
+  console.log(bodies);
   for (let index = 0; index < bodies.length; index++) {
     let body = bodies[index];
     if (body.label != 'player') {
