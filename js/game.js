@@ -431,19 +431,18 @@ function update() {
   if (lives == 0)
     restartGame(this);
 
-  if (player.x > 85 && curLevel == 1) {
-    // if (guardsLeft > 0)
-    //   player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
-    // else {
-    clearLevel(this);
-    player.setPosition(xStart, yStart);
-    curLevel++;
-
-    //buildLevel(this, curLevel);
-    // numGuards = curLevel + 4;
-    // guardsLeft = numGuards;
-    // initEnemies(this);
-    //  }
+  if (player.x > 885) {
+    if (guardsLeft > 0)
+      player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
+    else {
+      clearLevel(this);
+      player.setPosition(xStart, yStart);
+      curLevel++;
+      buildLevel(this, curLevel);
+      numGuards = curLevel + 4;
+      guardsLeft = numGuards;
+      initEnemies(this);
+    }
   }
 
   if (BORG.visible)
