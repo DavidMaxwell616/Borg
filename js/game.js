@@ -30,6 +30,7 @@ function gameCreate(scene) {
   score = 0;
   objectData = scene.cache.json.get('levelData');
   polygons = scene.add.group()
+  polyImages = scene.add.group()
   player = scene.matter.add.sprite(xStart, yStart, 'player');
   player.setOrigin(0.5, 0.5);
   player.setScale(.9);
@@ -400,8 +401,11 @@ function moveBORG() {
     BORG.setVelocityX(1);
   BORG.setVelocityY(borgYV);
   BORG.setDepth(0);
-  if (BORG.x > 900)
+  if (BORG.x > 885) {
     BORG.setPosition(borgXStart, borgYStart);
+    BORG.visible = false;
+    borgTimer = 500;
+  }
   if (Math.abs(borgYPath - BORG.y) < 20)
     BORG.setFrame(1);
   else
@@ -421,15 +425,15 @@ function moveBORG() {
 function update() {
   if (!startGame)
     return;
-  // if (borgTimer > 0)
-  //   borgTimer--;
+  if (borgTimer > 0)
+    borgTimer--;
   if (borgTimer == 0 && !BORG.visible) {
     BORG.visible = true;
     BORG.setPosition(xStart, yStart);
   }
 
-  if (lives == 0)
-    restartGame(this);
+  // if (lives == 0)
+  //   restartGame(this);
 
   if (player.x > 885) {
     if (guardsLeft > 0)
@@ -459,11 +463,7 @@ function clearLevel(scene) {
   polygons.children.each(object => {
     object.destroy();
   })
-
-  var graphics = scene.add.graphics();
-  var rect = new Phaser.Geom.Rectangle(0, 0, scene.game.config.width, 400);
-  graphics.fillStyle(0x000000, 1); // color: 0xRRGGBB
-  graphics.fillRectShape(rect);
+  levelBkgd.visible = false;
 }
 
 function restart() {
