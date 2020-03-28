@@ -14,32 +14,35 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: true,
+      debug: false,
     },
   },
 };
 
 var game = new Phaser.Game(config);
+var _scene;
 
 function create() {
+  _scene = this;
   if (!startGame) mainMenuCreate(this);
   else gameCreate();
 }
 
-function gameCreate(scene) {
+function gameCreate() {
   score = 0;
-  objectData = scene.cache.json.get('levelData');
-  polygons = scene.add.group()
-  polyImages = scene.add.group()
-  player = scene.matter.add.sprite(xStart, yStart, 'player');
+  objectData = _scene.cache.json.get('levelData');
+  polygons = _scene.add.group()
+  polyImages = _scene.add.group()
+  player = _scene.matter.add.sprite(xStart, yStart, 'player');
   player.setOrigin(0.5, 0.5);
-  player.setScale(.9);
+  player.setScale(.8);
   player.body.collideWorldBounds = true;
   player.body.label = 'player';
+  player.dying = false;
 
-  scene.anims.create({
+  _scene.anims.create({
     key: 'run',
-    frames: scene.anims.generateFrameNumbers('player', {
+    frames: _scene.anims.generateFrameNumbers('player', {
       start: 0,
       end: 2
     }),
@@ -48,36 +51,36 @@ function gameCreate(scene) {
   });
   player.setFixedRotation();
   player.anims.load('run');
-  cat1 = scene.matter.world.nextCategory();
+  cat1 = _scene.matter.world.nextCategory();
   player.setCollisionCategory(cat1);
-  cat2 = scene.matter.world.nextCategory();
+  cat2 = _scene.matter.world.nextCategory();
   player.setCollidesWith([cat1, cat2]);
   playerXSpeed = 0;
   playerYSpeed = 0;
-  scene.matter.world.setBounds(0, 0, scene.game.config.width, scene.game.config.height);
+  _scene.matter.world.setBounds(0, 0, _scene.game.config.width, _scene.game.config.height);
   maxxdaddy.visible = false;
 
-  scoreboard = scene.add.image(0, scene.game.config.height * 0.8, 'scoreboard');
+  scoreboard = _scene.add.image(0, _scene.game.config.height * 0.8, 'scoreboard');
   scoreboard.setOrigin(0, 0);
   scoreboard.setDisplaySize(
-    scene.game.config.width,
-    scene.game.config.height * 0.2,
+    _scene.game.config.width,
+    _scene.game.config.height * 0.2,
   );
 
   numGuards = curLevel + 4;
-  initEnemies(scene);
-  buildLevel(scene, curLevel);
+  initEnemies();
+  buildLevel(curLevel);
 
-  BORG = scene.matter.add.sprite(xStart, 500, 'borg');
+  BORG = _scene.matter.add.sprite(xStart, 500, 'borg');
   BORG.setOrigin(0.5, 0.5);
   BORG.body.label = 'BORG';
   BORG.visible = false;
   BORG.setCollisionCategory(cat2);
   BORG.setCollidesWith(cat2);
 
-  scoreText = scene.add.text(
-    scene.game.config.width * 0.31,
-    scene.game.config.height * 0.89,
+  scoreText = _scene.add.text(
+    _scene.game.config.width * 0.31,
+    _scene.game.config.height * 0.89,
     'SCORE: 0', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -85,9 +88,9 @@ function gameCreate(scene) {
     },
   );
 
-  livesText = scene.add.text(
-    scene.game.config.width * 0.63,
-    scene.game.config.height * 0.89,
+  livesText = _scene.add.text(
+    _scene.game.config.width * 0.63,
+    _scene.game.config.height * 0.89,
     'LIVES: 3', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -95,9 +98,9 @@ function gameCreate(scene) {
     },
   );
 
-  levelText = scene.add.text(
-    scene.game.config.width * 0.75,
-    scene.game.config.height * 0.89,
+  levelText = _scene.add.text(
+    _scene.game.config.width * 0.75,
+    _scene.game.config.height * 0.89,
     'LEVEL: 1', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -105,77 +108,82 @@ function gameCreate(scene) {
     },
   );
 
-  scene.input.keyboard.on('keydown_LEFT', function (event) {
+  _scene.input.keyboard.on('keydown_LEFT', function (event) {
+    if (player.dying) return;
     movePlayer(-1, 0);
     player.flipX = true;
   });
 
-  scene.input.keyboard.on('keydown_RIGHT', function (event) {
+  _scene.input.keyboard.on('keydown_RIGHT', function (event) {
+    if (player.dying) return;
     movePlayer(1, 0);
     player.flipX = false;
   });
 
-  scene.input.keyboard.on('keydown_UP', function (event) {
+  _scene.input.keyboard.on('keydown_UP', function (event) {
+    if (player.dying) return;
     movePlayer(0, -1)
   });
 
-  scene.input.keyboard.on('keydown_DOWN', function (event) {
+  _scene.input.keyboard.on('keydown_DOWN', function (event) {
+    if (player.dying) return;
     movePlayer(0, 1);
   });
 
-  scene.input.keyboard.on('keydown_SPACE', function (event) {
+  _scene.input.keyboard.on('keydown_SPACE', function (event) {
+    if (player.dying) return;
     bulletDirection = {
       xv: playerXSpeed * 5,
       yv: playerYSpeed * 5
     };
     var frame = 2 + bulletDirection.yv;
     player.setFrame(frame);
-    var bullet = scene.matter.add.sprite(0, 0, 'bullet');
+    var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
     bullet.body.label = 'bullet';
     var frame = setFrame(playerXSpeed, playerYSpeed);
-    shootBullet(scene, bullet, bulletDirection, frame);
+    shootBullet(bullet, bulletDirection, frame);
     playerXSpeed = 0;
     playerYSpeed = 0;
     shooting = true;
-  }, scene);
+  }, _scene);
 
-  scene.input.keyboard.on('keyup_SPACE', function (event) {
+  _scene.input.keyboard.on('keyup_SPACE', function (event) {
     shooting = false;
   });
 
 
-  scene.matter.world.on('collisionstart', function (event) {
+  _scene.matter.world.on('collisionstart', function (event) {
     for (var i = 0; i < event.pairs.length; i++) {
       var bodyA = getRootBody(event.pairs[i].bodyA);
       var bodyB = getRootBody(event.pairs[i].bodyB);
       if (bodyA.label == 'bullet' && bodyB.label == 'obstacle') {
         bodyA.gameObject.destroy();
-        scene.matter.world.remove(bodyA);
+        _scene.matter.world.remove(bodyA);
       } else if (bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
         if (bodyB.gameObject != null)
           bodyB.gameObject.destroy();
-        scene.matter.world.remove(bodyB);
+        _scene.matter.world.remove(bodyB);
       } else if (bodyA.label == 'bullet' && bodyB.label == 'guard') {
-        killGuard(scene, bodyB);
+        killGuard(bodyB);
         if (bodyA.gameObject != null)
           bodyA.gameObject.destroy();
-        scene.matter.world.remove(bodyA);
+        _scene.matter.world.remove(bodyA);
       } else if (bodyB.label == 'bullet' && bodyA.label == 'guard') {
-        killGuard(scene, bodyA);
+        killGuard(bodyA);
         bodyB.gameObject.destroy();
-        scene.matter.world.remove(bodyB);
+        _scene.matter.world.remove(bodyB);
       } else if (bodyA.label == 'player' && bodyB.label == 'obstacle') {
-        fryPlayer(scene);
+        fryPlayer();
       } else if (bodyB.label == 'player' && bodyA.label == 'obstacle') {
-        fryPlayer(scene);
+        fryPlayer();
       } else if (bodyA.label == 'player' && bodyB.label == 'guard') {
-        fryPlayer(scene);
+        fryPlayer();
         bodyB.gameObject.destroy();
-        scene.matter.world.remove(bodyB);
+        _scene.matter.world.remove(bodyB);
       } else if (bodyB.label == 'player' && bodyA.label == 'guard') {
-        fryPlayer(scene);
+        fryPlayer();
         bodyA.gameObject.destroy();
-        scene.matter.world.remove(bodyA);
+        _scene.matter.world.remove(bodyA);
       }
     }
   });
@@ -214,7 +222,7 @@ function movePlayer(xv, yv) {
   }
 }
 
-function shootBullet(scene, bullet, direction, frame) {
+function shootBullet(bullet, direction, frame) {
   bullet.setPosition(player.x + direction.xv, player.y + direction.yv);
   bullet.setVelocityX(direction.xv);
   bullet.setVelocityY(direction.yv);
@@ -223,8 +231,8 @@ function shootBullet(scene, bullet, direction, frame) {
   bullet.setFrame(frame);
 }
 
-function guardShoot(scene, guard, direction, frame) {
-  var bullet = scene.matter.add.sprite(0, 0, 'bullet');
+function guardShoot(guard, direction, frame) {
+  var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'bullet';
   bullet.setPosition(guard.x + direction.xv, guard.y + direction.yv);
   bullet.setVelocityX(direction.xv * 5);
@@ -234,16 +242,16 @@ function guardShoot(scene, guard, direction, frame) {
   bullet.setFrame(frame);
 }
 
-function initEnemies(scene) {
-  let physics = scene.matter;
+function initEnemies() {
+  let physics = _scene.matter;
   for (let index = 0; index < numGuards; index++) {
-    let x = Phaser.Math.Between(200, scene.game.config.width - 50);
+    let x = Phaser.Math.Between(200, _scene.game.config.width - 50);
     let y = Phaser.Math.Between(50, 350);
-    guards[index] = scene.matter.add.sprite(x, y, 'guard');
+    guards[index] = _scene.matter.add.sprite(x, y, 'guard');
 
-    scene.anims.create({
+    _scene.anims.create({
       key: 'guardRun',
-      frames: scene.anims.generateFrameNumbers('guard', {
+      frames: _scene.anims.generateFrameNumbers('guard', {
         start: 0,
         end: 1
       }),
@@ -253,7 +261,7 @@ function initEnemies(scene) {
     guards[index].setFixedRotation();
     guards[index].anims.load('guardRun');
     guards[index].setCollisionCategory(cat1);
-
+    guards[index].body.dying = false;
     guards[index].body.collideWorldBounds = true;
     guards[index].setOrigin(0.5, 0.5).setScale(xScale, yScale);
     guards[index].body.label = 'guard';
@@ -266,49 +274,35 @@ function updateStats() {
   livesText.setText('LIVES: ' + lives);
 }
 
-function fryPlayer(scene) {
-  player.visible = false;
-  makeExplosion(scene, player.x, player.y);
-  scene.time.delayedCall(500, () => {
-    emitter.stop();
-    player.visible = true;
+function fryPlayer() {
+  player.dying = true;
+  _scene.time.delayedCall(500, () => {
+    player.dying = false;
     player.setPosition(xStart, yStart);
+    player.tint = 0xffffff;
     lives--;
   });
 }
 
-function killGuard(scene, guard) {
-  makeExplosion(scene, guard.position.x, guard.position.y);
-  scene.time.delayedCall(500, () => {
-    emitter.stop();
+function killGuard(guard) {
+  guard.dying = true;
+  _scene.time.delayedCall(500, () => {
     if (guard.gameObject != null)
       guard.gameObject.destroy();
-    scene.matter.world.remove(guard);
+    _scene.matter.world.remove(guard);
     guardsLeft--;
     score += 50;
   });
 }
 
-function makeExplosion(scene, x, y) {
-  particles = scene.add.particles('flares');
-  emitter = particles.createEmitter({
-    frame: ['red', 'blue', 'green', 'yellow'],
-    x: x,
-    y: y,
-    speed: 200,
-    lifespan: 200,
-    blendMode: 'ADD'
-  });
 
-}
-
-function buildLevel(scene, level) {
+function buildLevel(level) {
   borgTimer = 500;
   levelData = objectData['level_' + level];
-  levelBkgd = scene.add.sprite(0, 0, 'level ' + level);
+  levelBkgd = _scene.add.sprite(0, 0, 'level ' + level);
   levelBkgd.setOrigin(0, 0);
   levelBkgd.setDisplaySize(
-    scene.game.config.width,
+    _scene.game.config.width,
     400,
   );
   levelBkgd.setDepth(100);
@@ -323,18 +317,18 @@ function buildLevel(scene, level) {
     }
 
     let centre = Phaser.Physics.Matter.Matter.Vertices.centre(polyObject);
-    var verts = scene.matter.verts.fromPath(vertices.join(' '));
+    var verts = _scene.matter.verts.fromPath(vertices.join(' '));
     for (let i = 0; i < verts.length; i++) {
       (verts[i].x -= centre.x) * -1 * xScale;
       (verts[i].y -= centre.y) * -1 * yScale;
     }
-    var poly = scene.add.polygon(
+    var poly = _scene.add.polygon(
       centre.x * xScale,
       centre.y * yScale,
       verts,
       0x0000ff, 0,
     );
-    var objBody = scene.matter.add
+    var objBody = _scene.matter.add
       .gameObject(
         poly, {
           shape: {
@@ -361,7 +355,7 @@ function getRootBody(body) {
   return body;
 }
 
-function moveEnemies(scene) {
+function moveEnemies() {
   for (let index = 0; index < numGuards; index++) {
     if (guards[index].active) {
       var guardXMove = 0;
@@ -390,8 +384,13 @@ function moveEnemies(scene) {
           yv: guardYMove * 5
         };
         var frame = setFrame(guardXMove, guardYMove);
-        guardShoot(scene, guards[index], bulletDirection, frame)
+        guardShoot(guards[index], bulletDirection, frame)
       }
+      if (guards[index].body.dying) {
+        guards[index].anims.pause(guards[index].anims.currentAnim.frames[8]);
+        guards[index].setFrame(8);
+      }
+
     }
   }
 }
@@ -425,12 +424,12 @@ function moveBORG() {
 function update() {
   if (!startGame)
     return;
-  if (borgTimer > 0)
-    borgTimer--;
-  if (borgTimer == 0 && !BORG.visible) {
-    BORG.visible = true;
-    BORG.setPosition(xStart, yStart);
-  }
+  // if (borgTimer > 0)
+  //   borgTimer--;
+  // if (borgTimer == 0 && !BORG.visible) {
+  //   BORG.visible = true;
+  //   BORG.setPosition(xStart, yStart);
+  // }
 
   // if (lives == 0)
   //   restartGame(this);
@@ -449,6 +448,13 @@ function update() {
     }
   }
 
+  if (player.dying) {
+    player.anims.pause(player.anims.currentAnim.frames[0]);
+    playerXSpeed = 0;
+    playerYSpeed = 0;
+    player.tint = Math.random() * 0xffffff;
+  }
+
   if (BORG.visible)
     moveBORG();
   if (playerXSpeed === 0 && playerYSpeed === 0)
@@ -459,7 +465,7 @@ function update() {
   moveEnemies(this);
 }
 
-function clearLevel(scene) {
+function clearLevel() {
   polygons.children.each(object => {
     object.destroy();
   })
@@ -475,7 +481,7 @@ function render() {
 
 }
 
-function restartGame(scene) {
+function restartGame() {
   startGame = false;
-  scene.game.state.start(game.state.current);
+  _scene.game.state.start(game.state.current);
 }
