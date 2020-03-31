@@ -14,7 +14,7 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: false,
+      debug: true,
     },
   },
 };
@@ -35,7 +35,7 @@ function gameCreate() {
   polyImages = _scene.add.group()
   player = _scene.matter.add.sprite(xStart, yStart, 'player');
   player.setOrigin(0.5, 0.5);
-  player.setScale(.8);
+  player.setScale(.7);
   player.body.collideWorldBounds = true;
   player.body.label = 'player';
   player.dying = false;
@@ -67,7 +67,7 @@ function gameCreate() {
     _scene.game.config.height * 0.2,
   );
 
-  numGuards = curLevel + 4;
+  numGuards = 1; //curLevel + 4;
   initEnemies();
   buildLevel(curLevel);
 
@@ -156,21 +156,22 @@ function gameCreate() {
     for (var i = 0; i < event.pairs.length; i++) {
       var bodyA = getRootBody(event.pairs[i].bodyA);
       var bodyB = getRootBody(event.pairs[i].bodyB);
-      if (bodyA.label == 'bullet' && bodyB.label == 'obstacle') {
+      if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'obstacle') {
         bodyA.gameObject.destroy();
         _scene.matter.world.remove(bodyA);
-      } else if (bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
+      } else if ((bodyB.label == 'bullet' || bodyB.label == 'guardBullet') && bodyA.label == 'obstacle') {
         if (bodyB.gameObject != null)
           bodyB.gameObject.destroy();
         _scene.matter.world.remove(bodyB);
-      } else if (bodyA.label == 'bullet' && bodyB.label == 'guard') {
+      } else if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'guard') {
         killGuard(bodyB);
         if (bodyA.gameObject != null)
           bodyA.gameObject.destroy();
         _scene.matter.world.remove(bodyA);
-      } else if (bodyB.label == 'bullet' && bodyA.label == 'guard') {
+      } else if ((bodyB.label == 'bullet' || bodyB.label == 'guardBullet') && bodyA.label == 'guard') {
         killGuard(bodyA);
-        bodyB.gameObject.destroy();
+        if (bodyB.gameObject != null)
+          bodyB.gameObject.destroy();
         _scene.matter.world.remove(bodyB);
       } else if (bodyA.label == 'player' && bodyB.label == 'obstacle') {
         fryPlayer();
@@ -181,6 +182,14 @@ function gameCreate() {
         bodyB.gameObject.destroy();
         _scene.matter.world.remove(bodyB);
       } else if (bodyB.label == 'player' && bodyA.label == 'guard') {
+        fryPlayer();
+        bodyA.gameObject.destroy();
+        _scene.matter.world.remove(bodyA);
+      } else if (bodyA.label == 'player' && bodyB.label == 'guardBullet') {
+        fryPlayer();
+        bodyB.gameObject.destroy();
+        _scene.matter.world.remove(bodyB);
+      } else if (bodyA.label == 'guardBullet' && bodyB.label == 'player') {
         fryPlayer();
         bodyA.gameObject.destroy();
         _scene.matter.world.remove(bodyA);
@@ -223,7 +232,14 @@ function movePlayer(xv, yv) {
 }
 
 function shootBullet(bullet, direction, frame) {
-  bullet.setPosition(player.x + direction.xv, player.y + direction.yv);
+  //offset so bullet doesn't hit player
+  var offsetX = 0;
+  var offsetY = 0;
+  if (direction.xv == 0 && direction.yv > 0)
+    offsetY = 10;
+  if (direction.xv < 0 && direction.yv > 0)
+    offsetY = 10;
+  bullet.setPosition(player.x + offsetX + direction.xv, player.y + offsetY + direction.yv);
   bullet.setVelocityX(direction.xv);
   bullet.setVelocityY(direction.yv);
   bullet.setFrictionAir(0);
@@ -231,15 +247,31 @@ function shootBullet(bullet, direction, frame) {
   bullet.setFrame(frame);
 }
 
-function guardShoot(guard, direction, frame) {
+function guardShoot(guard, bulletDirection) {
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
-  bullet.body.label = 'bullet';
-  bullet.setPosition(guard.x + direction.xv, guard.y + direction.yv);
-  bullet.setVelocityX(direction.xv * 5);
-  bullet.setVelocityY(direction.yv * 5);
+  bullet.body.label = 'guardBullet';
+  var xOffset = 0;
+  var yOffset = 0;
+  // Calculate X and y velocity of bullet to moves it from shooter to target
+  if (player.y >= guard.y) {
+    yOffset = guard.height / 2;
+    bullet.setVelocityX(5 * Math.sin(bulletDirection));
+    bullet.setVelocityY(5 * Math.cos(bulletDirection));
+  } else {
+    yOffset = -guard.height / 2;
+    bullet.setVelocityX(-5 * Math.sin(bulletDirection));
+    bullet.setVelocityY(-5 * Math.cos(bulletDirection));
+  }
+  if (player.x >= guard.x) {
+    xOffset = guard.width / 2;
+  } else {
+    xOffset = -guard.width / 2;
+  }
+  //bullet.rotation = shooter.rotation; // angle bullet with shooters rotation
+  bullet.setPosition(guard.x + xOffset, guard.y + yOffset);
+
   bullet.setFrictionAir(0);
   bullet.setCollisionCategory(cat1);
-  bullet.setFrame(frame);
 }
 
 function initEnemies() {
@@ -305,7 +337,6 @@ function buildLevel(level) {
     _scene.game.config.width,
     400,
   );
-  levelBkgd.setDepth(100);
   for (let index = 0; index < levelData.length; index++) {
     var vertices = levelData[index].shape;
     let polyObject = [];
@@ -342,6 +373,7 @@ function buildLevel(level) {
     objBody.body.label = 'obstacle';
     objBody.setCollisionCategory(cat1);
     polygons.add(poly);
+    levelBkgd.setDepth(0);
   }
 }
 
@@ -357,40 +389,40 @@ function getRootBody(body) {
 
 function moveEnemies() {
   for (let index = 0; index < numGuards; index++) {
-    if (guards[index].active) {
+    var guard = guards[index];
+    if (guard.active) {
       var guardXMove = 0;
       var guardYMove = 0;
-      if (player.y < guards[index].y)
+      if (player.y < guard.y)
         guardYMove = -1;
-      else if (player.y > guards[index].y)
+      else if (player.y > guard.y)
         guardYMove = 1;
-      else if (player.x < guards[index].x) {
-        guards[index].flipX = false;
+      if (player.x < guard.x) {
+        guard.flipX = false;
         guardXMove = -1;
-      } else if (player.x > guards[index].x) {
-        guards[index].flipX = true;
-        guardXMove = -1;
+      } else if (player.x > guard.x) {
+        guard.flipX = true;
+        guardXMove = 1;
       }
-      guards[index].x += guardXMove;
-      guards[index].y += guardYMove;
+      guard.x += guardXMove;
+      guard.y += guardYMove;
       if (guardXMove != 0 || guardYMove != 0)
-        guards[index].anims.play('guardRun');
+        guard.anims.play('guardRun');
       else
-        guards[index].anims.pause(guards[index].anims.currentAnim.frames[0]);
+        guard.anims.pause(guard.anims.currentAnim.frames[0]);
       let shoot = Phaser.Math.Between(1, 200);
       if (shoot == 200) {
-        bulletDirection = {
-          xv: guardXMove * 5,
-          yv: guardYMove * 5
-        };
+        var bulletDirection = Math.atan((player.x - guard.x) / (player.y - player.y));
+        //some light randomness to the bullet angle
+        bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
         var frame = setFrame(guardXMove, guardYMove);
-        guardShoot(guards[index], bulletDirection, frame)
+        guardShoot(guard, bulletDirection, frame)
       }
-      if (guards[index].body.dying) {
-        guards[index].anims.pause(guards[index].anims.currentAnim.frames[8]);
-        guards[index].setFrame(8);
+      if (guard.body.dying) {
+        guard.anims.pause(guard.anims.currentAnim.frames[8]);
+        guard.setFrame(8);
       }
-
+      guard.setDepth(100);
     }
   }
 }
@@ -422,6 +454,7 @@ function moveBORG() {
 // the game loop. Game logic lives in here.
 // is called every frame
 function update() {
+
   if (!startGame)
     return;
   // if (borgTimer > 0)
@@ -433,7 +466,7 @@ function update() {
 
   // if (lives == 0)
   //   restartGame(this);
-
+  player.depth = 100;
   if (player.x > 885) {
     if (guardsLeft > 0)
       player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
@@ -441,8 +474,8 @@ function update() {
       clearLevel(this);
       player.setPosition(xStart, yStart);
       curLevel++;
-      buildLevel(this, curLevel);
-      numGuards = curLevel + 4;
+      buildLevel(curLevel);
+      numGuards = 1; //curLevel + 4;
       guardsLeft = numGuards;
       initEnemies(this);
     }
