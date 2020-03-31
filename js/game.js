@@ -67,7 +67,7 @@ function gameCreate() {
     _scene.game.config.height * 0.2,
   );
 
-  numGuards = 1; //curLevel + 4;
+  numGuards = curLevel + 4;
   initEnemies();
   buildLevel(curLevel);
 
@@ -140,8 +140,7 @@ function gameCreate() {
     player.setFrame(frame);
     var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
     bullet.body.label = 'bullet';
-    var frame = setFrame(playerXSpeed, playerYSpeed);
-    shootBullet(bullet, bulletDirection, frame);
+    shootBullet(bullet, bulletDirection);
     playerXSpeed = 0;
     playerYSpeed = 0;
     shooting = true;
@@ -416,7 +415,7 @@ function moveEnemies() {
         //some light randomness to the bullet angle
         bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
         var frame = setFrame(guardXMove, guardYMove);
-        guardShoot(guard, bulletDirection, frame)
+        guardShoot(guard, bulletDirection)
       }
       if (guard.body.dying) {
         guard.anims.pause(guard.anims.currentAnim.frames[8]);
@@ -475,7 +474,7 @@ function update() {
       player.setPosition(xStart, yStart);
       curLevel++;
       buildLevel(curLevel);
-      numGuards = 1; //curLevel + 4;
+      numGuards = curLevel + 4;
       guardsLeft = numGuards;
       initEnemies(this);
     }

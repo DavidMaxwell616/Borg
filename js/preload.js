@@ -34,10 +34,7 @@ function preload() {
     frameHeight: 54
   }, );
 
-  this.load.spritesheet('bullet', 'bullet.png', {
-    frameWidth: 10,
-    frameHeight: 10
-  }, );
+  this.load.image('bullet', 'bullet.png');
 
   this.load.spritesheet('borg', 'borg.png', {
     frameWidth: 86,
