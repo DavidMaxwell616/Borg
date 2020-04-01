@@ -253,31 +253,32 @@ function guardShoot(guard) {
   var bulletDirection = Math.atan((player.x - guard.x) / (player.y - guard.y));
   //some light randomness to the bullet angle
   bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
-
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'guardBullet';
   var xOffset = 0;
   var yOffset = 0;
-  var bulletSpeed = 5;
+  var xBulletSpeed = 5;
+  var yBulletSpeed = 5;
   bullet.setFixedRotation();
-  //bullet.setAngularVelocity(bulletDirection);
   // Calculate X and y velocity of bullet to moves it from shooter to target
-  if (player.y >= guard.y) {
-    yOffset = guard.height / 2;
-    bulletSpeed = -bulletSpeed;
-  } else {
-    yOffset = -guard.height / 2;
-  }
   if (player.x >= guard.x) {
     xOffset = guard.width / 2;
   } else {
-    bulletSpeed = -bulletSpeed;
+    xBulletSpeed = -xBulletSpeed;
     xOffset = -guard.width / 2;
   }
-  bullet.setVelocityX(bulletSpeed * Math.sin(bulletDirection));
-  bullet.setVelocityY(bulletSpeed * Math.cos(bulletDirection));
+  if (player.y >= guard.y) {
+    yOffset = guard.height / 2;
+  } else {
+    yBulletSpeed = -yBulletSpeed;
+    yOffset = -guard.height / 2;
+  }
+  //  console.log(guard.body.id, bulletDirection);
+  bullet.setVelocityX(xBulletSpeed * Math.sin(Math.abs(bulletDirection)));
+  bullet.setVelocityY(yBulletSpeed * Math.cos(Math.abs(bulletDirection)));
   bullet.setPosition(guard.x + xOffset, guard.y + yOffset);
-  bullet.rotation = bulletDirection / 4;
+  let angle = Phaser.Math.Angle.Between(player.x, player.y, guard.x, guard.y);
+  bullet.rotation = angle;
   bullet.setFrictionAir(0);
   bullet.setCollisionCategory(cat1);
 }
@@ -401,25 +402,25 @@ function moveEnemies() {
     if (guard.active) {
       var guardXMove = 0;
       var guardYMove = 0;
-      //     if (player.y < guard.y)
-      //       guardYMove = -1;
-      //     else if (player.y > guard.y)
-      //       guardYMove = 1;
-      //     if (player.x < guard.x) {
-      //       guard.flipX = false;
-      //       guardXMove = -1;
-      //     } else if (player.x > guard.x) {
-      //       guard.flipX = true;
-      //       guardXMove = 1;
-      //     }
-      //     guard.x += guardXMove;
-      //     guard.y += guardYMove;
-      //     if (guardXMove != 0 || guardYMove != 0)
-      //       guard.anims.play('guardRun');
-      //     else
-      //       guard.anims.pause(guard.anims.currentAnim.frames[0]);
+      if (player.y < guard.y)
+        guardYMove = -1;
+      else if (player.y > guard.y)
+        guardYMove = 1;
+      if (player.x < guard.x) {
+        guard.flipX = false;
+        guardXMove = -1;
+      } else if (player.x > guard.x) {
+        guard.flipX = true;
+        guardXMove = 1;
+      }
+      guard.x += guardXMove;
+      guard.y += guardYMove;
+      if (guardXMove != 0 || guardYMove != 0)
+        guard.anims.play('guardRun');
+      else
+        guard.anims.pause(guard.anims.currentAnim.frames[0]);
       let shoot = Phaser.Math.Between(1, 200);
-      if (shoot > 190) {
+      if (shoot == 200) {
         guardShoot(guard)
       }
       if (guard.body.dying) {
@@ -461,12 +462,12 @@ function update() {
 
   if (!startGame)
     return;
-  // if (borgTimer > 0)
-  //   borgTimer--;
-  // if (borgTimer == 0 && !BORG.visible) {
-  //   BORG.visible = true;
-  //   BORG.setPosition(xStart, yStart);
-  // }
+  if (borgTimer > 0)
+    borgTimer--;
+  if (borgTimer == 0 && !BORG.visible) {
+    BORG.visible = true;
+    BORG.setPosition(xStart, yStart);
+  }
 
   // if (lives == 0)
   //   restartGame(this);
