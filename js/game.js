@@ -140,7 +140,8 @@ function gameCreate() {
     player.setFrame(frame);
     var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
     bullet.body.label = 'bullet';
-    shootBullet(bullet, bulletDirection);
+    if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
+      shootBullet(bullet, bulletDirection);
     playerXSpeed = 0;
     playerYSpeed = 0;
     shooting = true;
@@ -230,45 +231,53 @@ function movePlayer(xv, yv) {
   }
 }
 
-function shootBullet(bullet, direction, frame) {
+function shootBullet(bullet, direction) {
   //offset so bullet doesn't hit player
   var offsetX = 0;
   var offsetY = 0;
-  if (direction.xv == 0 && direction.yv > 0)
-    offsetY = 10;
-  if (direction.xv < 0 && direction.yv > 0)
-    offsetY = 10;
+  offsetY = direction.yv * 2;
+  offsetX = direction.xv * 2;
   bullet.setPosition(player.x + offsetX + direction.xv, player.y + offsetY + direction.yv);
   bullet.setVelocityX(direction.xv);
   bullet.setVelocityY(direction.yv);
   bullet.setFrictionAir(0);
   bullet.setCollisionCategory(cat1);
-  bullet.setFrame(frame);
+  if (direction.xv != 0 && direction.yv != 0)
+    bullet.angle = 45;
+  else if (direction.xv == 0 && direction.yv != 0)
+    bullet.angle = 90;
+  else bullet.angle = 0;
 }
 
-function guardShoot(guard, bulletDirection) {
+function guardShoot(guard) {
+  var bulletDirection = Math.atan((player.x - guard.x) / (player.y - player.y));
+  //some light randomness to the bullet angle
+  bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
+
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'guardBullet';
   var xOffset = 0;
   var yOffset = 0;
+  var bulletSpeed = 5;
+  //bullet.setAngularVelocity(bulletDirection);
   // Calculate X and y velocity of bullet to moves it from shooter to target
   if (player.y >= guard.y) {
     yOffset = guard.height / 2;
-    bullet.setVelocityX(5 * Math.sin(bulletDirection));
-    bullet.setVelocityY(5 * Math.cos(bulletDirection));
+    bullet.setVelocityY(-bulletSpeed * Math.cos(bulletDirection));
   } else {
     yOffset = -guard.height / 2;
-    bullet.setVelocityX(-5 * Math.sin(bulletDirection));
-    bullet.setVelocityY(-5 * Math.cos(bulletDirection));
+    bullet.setVelocityY(bulletSpeed * Math.cos(bulletDirection));
   }
   if (player.x >= guard.x) {
     xOffset = guard.width / 2;
+    bullet.setVelocityX(-bulletSpeed * Math.sin(bulletDirection));
   } else {
     xOffset = -guard.width / 2;
+    bullet.setVelocityX(bulletSpeed * Math.sin(bulletDirection));
   }
   //bullet.rotation = shooter.rotation; // angle bullet with shooters rotation
   bullet.setPosition(guard.x + xOffset, guard.y + yOffset);
-
+  //bullet.angle = 0;
   bullet.setFrictionAir(0);
   bullet.setCollisionCategory(cat1);
 }
@@ -392,30 +401,26 @@ function moveEnemies() {
     if (guard.active) {
       var guardXMove = 0;
       var guardYMove = 0;
-      if (player.y < guard.y)
-        guardYMove = -1;
-      else if (player.y > guard.y)
-        guardYMove = 1;
-      if (player.x < guard.x) {
-        guard.flipX = false;
-        guardXMove = -1;
-      } else if (player.x > guard.x) {
-        guard.flipX = true;
-        guardXMove = 1;
-      }
-      guard.x += guardXMove;
-      guard.y += guardYMove;
-      if (guardXMove != 0 || guardYMove != 0)
-        guard.anims.play('guardRun');
-      else
-        guard.anims.pause(guard.anims.currentAnim.frames[0]);
+      //     if (player.y < guard.y)
+      //       guardYMove = -1;
+      //     else if (player.y > guard.y)
+      //       guardYMove = 1;
+      //     if (player.x < guard.x) {
+      //       guard.flipX = false;
+      //       guardXMove = -1;
+      //     } else if (player.x > guard.x) {
+      //       guard.flipX = true;
+      //       guardXMove = 1;
+      //     }
+      //     guard.x += guardXMove;
+      //     guard.y += guardYMove;
+      //     if (guardXMove != 0 || guardYMove != 0)
+      //       guard.anims.play('guardRun');
+      //     else
+      //       guard.anims.pause(guard.anims.currentAnim.frames[0]);
       let shoot = Phaser.Math.Between(1, 200);
-      if (shoot == 200) {
-        var bulletDirection = Math.atan((player.x - guard.x) / (player.y - player.y));
-        //some light randomness to the bullet angle
-        bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
-        var frame = setFrame(guardXMove, guardYMove);
-        guardShoot(guard, bulletDirection)
+      if (shoot > 190) {
+        guardShoot(guard)
       }
       if (guard.body.dying) {
         guard.anims.pause(guard.anims.currentAnim.frames[8]);
