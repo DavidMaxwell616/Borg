@@ -250,7 +250,7 @@ function shootBullet(bullet, direction) {
 }
 
 function guardShoot(guard) {
-  var bulletDirection = Math.atan((player.x - guard.x) / (player.y - player.y));
+  var bulletDirection = Math.atan((player.x - guard.x) / (player.y - guard.y));
   //some light randomness to the bullet angle
   bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
 
@@ -259,25 +259,25 @@ function guardShoot(guard) {
   var xOffset = 0;
   var yOffset = 0;
   var bulletSpeed = 5;
+  bullet.setFixedRotation();
   //bullet.setAngularVelocity(bulletDirection);
   // Calculate X and y velocity of bullet to moves it from shooter to target
   if (player.y >= guard.y) {
     yOffset = guard.height / 2;
-    bullet.setVelocityY(-bulletSpeed * Math.cos(bulletDirection));
+    bulletSpeed = -bulletSpeed;
   } else {
     yOffset = -guard.height / 2;
-    bullet.setVelocityY(bulletSpeed * Math.cos(bulletDirection));
   }
   if (player.x >= guard.x) {
     xOffset = guard.width / 2;
-    bullet.setVelocityX(-bulletSpeed * Math.sin(bulletDirection));
   } else {
+    bulletSpeed = -bulletSpeed;
     xOffset = -guard.width / 2;
-    bullet.setVelocityX(bulletSpeed * Math.sin(bulletDirection));
   }
-  //bullet.rotation = shooter.rotation; // angle bullet with shooters rotation
+  bullet.setVelocityX(bulletSpeed * Math.sin(bulletDirection));
+  bullet.setVelocityY(bulletSpeed * Math.cos(bulletDirection));
   bullet.setPosition(guard.x + xOffset, guard.y + yOffset);
-  //bullet.angle = 0;
+  bullet.rotation = bulletDirection / 4;
   bullet.setFrictionAir(0);
   bullet.setCollisionCategory(cat1);
 }
