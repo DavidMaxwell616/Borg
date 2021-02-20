@@ -1,6 +1,6 @@
 function preload() {
-  const TITLE_WIDTH = 867;
-  const TITLE_HEIGHT = 142;
+  const TITLE_WIDTH = 464;
+  const TITLE_HEIGHT = 79;
 
   this.scale.pageAlignHorizontally = true;
   this.scale.pageAlignVertically = true;
@@ -9,6 +9,7 @@ function preload() {
   showLoader(this);
   this.load.path = '../assets/images/';
   this.load.image('splash', 'splash.png');
+  this.load.image('arrow', 'arrow.png');
   this.load.image('scoreboard', 'scoreboard.png');
   this.load.image('maxxdaddy', 'maxxdaddy.gif');
   this.load.image('level 1', 'level_1.png');
@@ -23,7 +24,7 @@ function preload() {
   this.load.image('level 10', 'level_10.png');
   this.load.spritesheet(
     'title',
-    'title.png', {
+    'title3.png', {
       frameWidth: TITLE_WIDTH,
       frameHeight: TITLE_HEIGHT
     }
@@ -53,7 +54,8 @@ function showLoader(game) {
   var progressBar = game.add.graphics();
   var progressBox = game.add.graphics();
   progressBox.fillStyle(0x222222, 0.8);
-  progressBox.fillRect(340, 270, 320, 50);
+  var x = width/2-160;
+  progressBox.fillRect(x, height*.6-10, 50);
   game.load.on('progress', function (value) {});
 
   game.load.on('fileprogress', function (file) {});
@@ -67,7 +69,8 @@ function showLoader(game) {
   game.load.on('progress', function (value) {
     progressBar.clear();
     progressBar.fillStyle(0xff4500, 1);
-    progressBar.fillRect(350, 280, 300 * value, 30);
+    var x = width/2-140;
+    progressBar.fillRect(x,height*.6-10, 300 * value, 30);
     percentText.setText(parseInt(value * 100) + '%');
   });
 
@@ -82,7 +85,7 @@ function showLoader(game) {
       fill: '#ffffff'
     }
   });
-  loadingText.setOrigin(0.5, 0.5);
+  loadingText.setOrigin(0.5);
 
   var percentText = game.make.text({
     x: width / 2,

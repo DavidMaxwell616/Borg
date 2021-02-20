@@ -14,7 +14,7 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: true,
+      debug: false,
     },
   },
 };
@@ -34,8 +34,7 @@ function gameCreate() {
   polygons = _scene.add.group()
   polyImages = _scene.add.group()
   player = _scene.matter.add.sprite(xStart, yStart, 'player');
-  player.setOrigin(0.5, 0.5);
-  player.setScale(.7);
+  player.setOrigin(0.5, 0.5).setScale(.7);
   player.body.collideWorldBounds = true;
   player.body.label = 'player';
   player.dying = false;
@@ -80,7 +79,7 @@ function gameCreate() {
 
   scoreText = _scene.add.text(
     _scene.game.config.width * 0.31,
-    _scene.game.config.height * 0.89,
+    _scene.game.config.height * 0.9,
     'SCORE: 0', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -89,8 +88,8 @@ function gameCreate() {
   );
 
   livesText = _scene.add.text(
-    _scene.game.config.width * 0.63,
-    _scene.game.config.height * 0.89,
+    _scene.game.config.width * 0.47,
+    _scene.game.config.height * 0.9,
     'LIVES: 3', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -99,8 +98,8 @@ function gameCreate() {
   );
 
   levelText = _scene.add.text(
-    _scene.game.config.width * 0.75,
-    _scene.game.config.height * 0.89,
+    _scene.game.config.width * 0.6,
+    _scene.game.config.height * 0.9,
     'LEVEL: 1', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -131,26 +130,37 @@ function gameCreate() {
   });
 
   _scene.input.keyboard.on('keydown_SPACE', function (event) {
-    if (player.dying) return;
-    bulletDirection = {
-      xv: playerXSpeed * 5,
-      yv: playerYSpeed * 5
-    };
-    var frame = 2 + bulletDirection.yv;
-    player.setFrame(frame);
-    var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
-    bullet.body.label = 'bullet';
-    if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
-      shootBullet(bullet, bulletDirection);
-    playerXSpeed = 0;
-    playerYSpeed = 0;
-    shooting = true;
+    Fire();
   }, _scene);
 
   _scene.input.keyboard.on('keyup_SPACE', function (event) {
     shooting = false;
   });
 
+  function onObjectClicked(pointer,gameObject){
+    switch (gameObject.name) {
+    case 'right':
+      movePlayer(1, 0);
+      break;
+    case 'left':
+      movePlayer(-1, 0);
+      break;
+    case 'up':
+      movePlayer(0, -1);
+      break;
+    case 'down':
+      movePlayer(0, 1);
+      break;
+    default:
+      break;
+  }
+  }
+  
+ setUpArrows();
+  _scene.input.on('pointerdown', function(pointer){
+    Fire();
+ });
+ _scene.input.on('gameobjectdown',onObjectClicked);
 
   _scene.matter.world.on('collisionstart', function (event) {
     for (var i = 0; i < event.pairs.length; i++) {
@@ -199,6 +209,22 @@ function gameCreate() {
 
 }
 
+function setUpArrows(){
+  var y = _scene.game.config.height-10;
+  for (let index = 0; index < arrows.length; index++) {
+   var arrow = arrowStats[index];
+   arrows[index] = _scene.add.image(0,0,'arrow');
+   arrows[index].setOrigin(0.5).setScale(.25);
+   arrows[index].xOffset = arrow.xOffset;  
+   arrows[index].yOffSet = arrow.yOffset;  
+    arrows[index].x = 60+arrows[index].width*.25+40+arrow.xOffset;
+    arrows[index].y = y- arrows[index].width*.25+arrow.yOffset;
+    arrows[index].name= arrow.direction;
+    arrows[index].inputEnabled = true;
+   arrows[index].angle =arrow.angle;  
+  }
+}
+
 function setFrame(xv, yv) {
   if (yv == 0 && xv != 0)
     return 0;
@@ -209,7 +235,22 @@ function setFrame(xv, yv) {
   else
     return 3;
 }
-
+function Fire(){
+  if (player.dying) return;
+  bulletDirection = {
+    xv: playerXSpeed * 5,
+    yv: playerYSpeed * 5
+  };
+  var frame = 2 + bulletDirection.yv;
+  player.setFrame(frame);
+  var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
+  bullet.body.label = 'bullet';
+  if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
+    shootBullet(bullet, bulletDirection);
+  playerXSpeed = 0;
+  playerYSpeed = 0;
+  shooting = true;
+}
 function movePlayer(xv, yv) {
   if (xv != 0) {
     if (playerXSpeed === -xv) {
