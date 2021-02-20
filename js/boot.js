@@ -101,8 +101,8 @@ var arrows =new Array(4);
 var arrowStats = [
   {
     angle: 0,
-  yOffset: 0,
-  xOffset: 660,
+  yOffset: 20,
+  xOffset: 630,
   direction:'right',
   },
   {
@@ -113,8 +113,8 @@ var arrowStats = [
   }  ,
   {
     angle: 180,
-  yOffset: 0,
-  xOffset: 560,
+  yOffset: 20,
+  xOffset: 550,
   direction:'left',
   }  ,
   {
