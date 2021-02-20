@@ -138,7 +138,10 @@ function gameCreate() {
   });
 
   function onObjectClicked(pointer,gameObject){
-    switch (gameObject.name) {
+    
+    if(pointer.y>400)
+   {
+      switch (gameObject.name) {
     case 'right':
       movePlayer(1, 0);
       break;
@@ -154,10 +157,12 @@ function gameCreate() {
     default:
       break;
   }
+}
   }
   
  setUpArrows();
   _scene.input.on('pointerdown', function(pointer){
+    if(pointer.y<400)
     Fire();
  });
  _scene.input.on('gameobjectdown',onObjectClicked);
@@ -220,7 +225,7 @@ function setUpArrows(){
     arrows[index].x = 60+arrows[index].width*.25+40+arrow.xOffset;
     arrows[index].y = y- arrows[index].width*.25+arrow.yOffset;
     arrows[index].name= arrow.direction;
-    arrows[index].inputEnabled = true;
+    arrows[index].setInteractive();
    arrows[index].angle =arrow.angle;  
   }
 }
