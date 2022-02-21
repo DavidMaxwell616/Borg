@@ -8,15 +8,15 @@ function mainMenuCreate(scene) {
   title = scene.add.sprite(width/2, height*.25, 'title');
   title.setOrigin(.5);
   
-  // var animConfig = {
-  //   key: 'title',
-  //   frames: scene.anims.generateFrameNumbers('title'),
-  //   frameRate: 6,
-  //   repeat: -1
-  // };
-   // title.anims.load('title');
-  // title.anims.play('title');
- // var pointer = scene.input.activePointer;
+  var animConfig = {
+    key: 'title',
+    frames: scene.anims.generateFrameNumbers('title'),
+    frameRate: 6,
+    repeat: -1
+  };
+   title.anims.load('title');
+//  title.anims.play('title');
+ var pointer = scene.input.activePointer;
  // console.log(pointer);
   scene.input.on('pointerdown', function(pointer){
     Start();

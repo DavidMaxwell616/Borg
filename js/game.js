@@ -75,6 +75,7 @@ function gameCreate() {
   BORG.setOrigin(0.5);
   BORG.body.label = 'BORG';
   BORG.visible = false;
+  BORG.active = false;
   cat3 = _scene.matter.world.nextCategory();
   BORG.setCollisionCategory(cat3);
   BORG.setCollidesWith([cat3,cat2]);
@@ -281,7 +282,6 @@ function movePlayer(xv, yv) {
 }
 
 function shootBullet(bullet, direction) {
-  //offset so bullet doesn't hit player
   var offsetX = 0;
   var offsetY = 0;
   offsetY = direction.yv * 2;
@@ -376,7 +376,7 @@ function fryPlayer() {
     player.setPosition(xStart, yStart);
     player.tint = 0xffffff;
     lives--;
-    borgTimer = (10-level) * BORGTIMERLENGTH;
+    resetBorg();
   });
 }
 
@@ -393,7 +393,6 @@ function killGuard(guard) {
 
 
 function buildLevel() {
-  borgTimer = (10-level) * BORGTIMERLENGTH;
   levelData = objectData['level_' + level];
   levelBkgd = _scene.add.sprite(0, 0, 'level ' + level);
   levelBkgd.setOrigin(0);
@@ -438,6 +437,14 @@ function buildLevel() {
     objBody.setCollisionCategory(cat1);
     polygons.add(poly);
     levelBkgd.setDepth(0);
+  }
+  if(level==9)
+  {
+    level_9_top_wall = _scene.add.sprite(10, 0, 'level 9 top wall');
+    level_9_top_wall.setOrigin(0);
+    level_9_bottom_wall = _scene.add.sprite(10, 386, 'level 9 bottom wall');
+    level_9_bottom_wall.setOrigin(0);
+    buildWall=0;
   }
 }
 
@@ -488,16 +495,24 @@ function moveEnemies() {
   }
 }
 
+function resetBorg(){
+  BORG.setPosition(borgXStart, borgYStart);
+  BORG.visible = false;
+  borgTimer = (10-level) * BORGTIMERLENGTH;
+  BORG.active = false;
+}
+
+function startBorg(){
+  BORG.active = true;
+  BORG.visible = true;
+  BORG.setPosition(xStart, yStart);
+}
 function MoveBorg() {
-  if (player.x > BORG.x || player.x < BORG.x)
+  if (player.x > BORG.x || player.x < BORG.x && BORG.active)
     BORG.setVelocityX(1);
   BORG.setVelocityY(borgYV);
   BORG.setDepth(0);
-  if (BORG.x > game.width) {
-    BORG.setPosition(borgXStart, borgYStart);
-    BORG.visible = false;
-    borgTimer = (10-level) * BORGTIMERLENGTH;
-  }
+  if (BORG.x > game.width) resetBorg();
   if (Math.abs(borgYPath - BORG.y) < 20)
     BORG.setFrame(1);
   else
@@ -520,9 +535,8 @@ function update() {
     return;
   if (borgTimer > 0)
     borgTimer--;
-  if (borgTimer == 0 && !BORG.visible) {
-    BORG.visible = true;
-    BORG.setPosition(xStart, yStart);
+  if (borgTimer == 0 && !BORG.active) {
+     startBorg();
   }
   if (player.x > 885) {
     if (guardsLeft > 0)
@@ -535,9 +549,18 @@ function update() {
       numGuards = 0;//level + 4;
       guardsLeft = numGuards;
       initEnemies(this);
+      resetBorg();
     }
   }
-
+if(level==9){
+  buildWall++;
+  if(buildWall>50)
+{
+  level_9_top_wall.y+=5;
+  level_9_bottom_wall.y-=5;
+    buildWall=0;
+}
+}
   if (player.dying) {
     player.anims.pause(player.anims.currentAnim.frames[0]);
     playerXSpeed = 0;

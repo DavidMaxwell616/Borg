@@ -21,10 +21,12 @@ function preload() {
   this.load.image('level 7', 'level_7.png');
   this.load.image('level 8', 'level_8.png');
   this.load.image('level 9', 'level_9.png');
+  this.load.image('level 9 top wall', 'level_9_top_wall.png');
+  this.load.image('level 9 bottom wall', 'level_9_bottom_wall.png');
   this.load.image('level 10', 'level_10.png');
   this.load.spritesheet(
     'title',
-    'title3.png', {
+    'title_low_low_res.png', {
       frameWidth: TITLE_WIDTH,
       frameHeight: TITLE_HEIGHT
     }

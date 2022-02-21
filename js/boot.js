@@ -10,7 +10,7 @@ let scoreText;
 let lives = 300;
 const BORGTIMERLENGTH = 100;
 let livesText;
-let level=1;
+let level=9;
 let levelText;
 let title;
 let startGame = false;
@@ -20,7 +20,6 @@ let yStart = 200;
 let xScale = .9;
 let yScale = .8;
 let maxxdaddy;
-let curLevel = 1;
 let curScore = 0;
 let textTimer;
 let guards = [];
@@ -127,3 +126,6 @@ var arrowStats = [
   }  
   ];
   var arrowDown=false;
+  var level_9_topwall;
+  var level_9_bottom_wall;
+var moveWall;
