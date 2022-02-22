@@ -14,16 +14,19 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: false,
+      debug: true,
     },
   },
 };
 
 var game = new Phaser.Game(config);
 var _scene;
+var width, height;
 
 function create() {
   _scene = this;
+  width = _scene.game.config.width;
+  height = _scene.game.config.height;
   if (!startGame) mainMenuCreate(this);
   else gameCreate();
 }
@@ -57,14 +60,14 @@ function gameCreate() {
   playerXSpeed = 0;
   playerYSpeed = 0;
   player.setDepth(1)
-  _scene.matter.world.setBounds(0, 0, _scene.game.config.width, _scene.game.config.height);
+  _scene.matter.world.setBounds(0, 0, width, height);
   maxxdaddy.visible = false;
 
-  scoreboard = _scene.add.image(0, _scene.game.config.height * 0.8, 'scoreboard');
+  scoreboard = _scene.add.image(0, height * 0.8, 'scoreboard');
   scoreboard.setOrigin(0);
   scoreboard.setDisplaySize(
-    _scene.game.config.width,
-    _scene.game.config.height * 0.2,
+    width,
+    height * 0.2,
   );
 
   numGuards = 0;//level + 4;
@@ -81,8 +84,8 @@ function gameCreate() {
   BORG.setCollidesWith([cat3,cat2]);
   
   scoreText = _scene.add.text(
-    _scene.game.config.width * 0.31,
-    _scene.game.config.height * 0.9,
+    width * 0.31,
+    height * 0.9,
     'SCORE: 0', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -91,8 +94,8 @@ function gameCreate() {
   );
 
   livesText = _scene.add.text(
-    _scene.game.config.width * 0.47,
-    _scene.game.config.height * 0.9,
+    width * 0.47,
+    height * 0.9,
     'LIVES: 3', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -101,8 +104,8 @@ function gameCreate() {
   );
 
   levelText = _scene.add.text(
-    _scene.game.config.width * 0.6,
-    _scene.game.config.height * 0.9,
+    width * 0.6,
+    height * 0.9,
     'level: 1', {
       fontFamily: 'Arial',
       fontSize: '18px',
@@ -211,7 +214,10 @@ function gameCreate() {
         fryPlayer();
         bodyA.gameObject.destroy();
         _scene.matter.world.remove(bodyA);
-      } 
+      } else if (bodyA.label == 'player' && bodyB.label == 'wall') {
+        fryPlayer();
+        resetWalls();
+      }
       console.log(bodyA.label,bodyB.label);
     }
   });
@@ -219,7 +225,7 @@ function gameCreate() {
 }
 
 function setUpArrows(){
-  var y = _scene.game.config.height-10;
+  var y = height-10;
   for (let index = 0; index < arrows.length; index++) {
    var arrow = arrowStats[index];
    arrows[index] = _scene.add.image(0,0,'arrow');
@@ -340,7 +346,7 @@ function guardShoot(guard) {
 
 function initEnemies() {
    for (let index = 0; index < numGuards; index++) {
-    let x = Phaser.Math.Between(200, _scene.game.config.width - 50);
+    let x = Phaser.Math.Between(200, width - 50);
     let y = Phaser.Math.Between(50, 350);
     guards[index] = _scene.matter.add.sprite(x, y, 'guard');
 
@@ -397,7 +403,7 @@ function buildLevel() {
   levelBkgd = _scene.add.sprite(0, 0, 'level ' + level);
   levelBkgd.setOrigin(0);
   levelBkgd.setDisplaySize(
-    _scene.game.config.width,
+    width,
     400,
   );
   for (let index = 0; index < levelData.length; index++) {
@@ -440,11 +446,13 @@ function buildLevel() {
   }
   if(level==9)
   {
-    level_9_top_wall = _scene.add.sprite(10, 0, 'level 9 top wall');
-    level_9_top_wall.setOrigin(0);
-    level_9_bottom_wall = _scene.add.sprite(10, 386, 'level 9 bottom wall');
-    level_9_bottom_wall.setOrigin(0);
-    buildWall=0;
+    level_9_top_wall = _scene.matter.add.sprite(width/2, 0, 'level 9 top wall');
+     level_9_top_wall.body.label = 'wall';
+     level_9_top_wall.setCollisionCategory(cat1);
+     level_9_bottom_wall = _scene.matter.add.sprite(width/2, 386, 'level 9 bottom wall');
+    level_9_bottom_wall.body.label = 'wall';
+    level_9_bottom_wall.setCollisionCategory(cat1);
+    moveWall=0;
   }
 }
 
@@ -502,6 +510,12 @@ function resetBorg(){
   BORG.active = false;
 }
 
+function resetWalls(){
+  level_9_top_wall.setPosition(width/2, 0);
+  level_9_bottom_wall.setPosition(width/2, 386);
+moveWall=0;
+}
+
 function startBorg(){
   BORG.active = true;
   BORG.visible = true;
@@ -553,12 +567,12 @@ function update() {
     }
   }
 if(level==9){
-  buildWall++;
-  if(buildWall>50)
+  moveWall++;
+  if(moveWall>50)
 {
   level_9_top_wall.y+=5;
   level_9_bottom_wall.y-=5;
-    buildWall=0;
+    moveWall=0;
 }
 }
   if (player.dying) {
