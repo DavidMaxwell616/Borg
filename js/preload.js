@@ -23,7 +23,10 @@ function preload() {
   this.load.image('level 9', 'level_9.png');
   this.load.image('level 9 top wall', 'level_9_top_wall.png');
   this.load.image('level 9 bottom wall', 'level_9_bottom_wall.png');
+  this.load.image('level 9 top wall 2', 'level_9_top_wall2.png');
+  this.load.image('level 9 bottom wall 2', 'level_9_bottom_wall2.png');
   this.load.image('level 10', 'level_10.png');
+  this.load.image('boss', 'boss.png');
   this.load.spritesheet(
     'title',
     'title_low_low_res.png', {

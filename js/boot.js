@@ -126,6 +126,7 @@ var arrowStats = [
   }  
   ];
   var arrowDown=false;
-  var level_9_topwall;
+  var level_9_top_wall;
   var level_9_bottom_wall;
 var moveWall;
+var boss;

@@ -14,7 +14,7 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: true,
+      debug: false,
     },
   },
 };
@@ -217,6 +217,9 @@ function gameCreate() {
       } else if (bodyA.label == 'player' && bodyB.label == 'wall') {
         fryPlayer();
         resetWalls();
+      }
+      else if (bodyA.label == 'boss' && bodyB.label == 'bullet') {
+          console.log('game over!')
       }
       console.log(bodyA.label,bodyB.label);
     }
@@ -447,12 +450,21 @@ function buildLevel() {
   if(level==9)
   {
     level_9_top_wall = _scene.matter.add.sprite(width/2, 0, 'level 9 top wall');
+    level_9_top_wall2 = _scene.add.sprite(width/2, 2, 'level 9 top wall 2');
      level_9_top_wall.body.label = 'wall';
      level_9_top_wall.setCollisionCategory(cat1);
-     level_9_bottom_wall = _scene.matter.add.sprite(width/2, 386, 'level 9 bottom wall');
-    level_9_bottom_wall.body.label = 'wall';
+     level_9_bottom_wall = _scene.matter.add.sprite(width/2, 391, 'level 9 bottom wall');
+     level_9_bottom_wall2 = _scene.add.sprite(width/2, 398, 'level 9 bottom wall 2');
+     level_9_bottom_wall.body.label = 'wall';
     level_9_bottom_wall.setCollisionCategory(cat1);
     moveWall=0;
+  }
+  if(level==10)
+  {
+    boss = _scene.matter.add.sprite(width*.66, 200, 'boss');
+    boss.body.label = 'boss';
+    boss.setCollisionCategory(cat1);
+    boss.setFixedRotation();
   }
 }
 
@@ -512,8 +524,11 @@ function resetBorg(){
 
 function resetWalls(){
   level_9_top_wall.setPosition(width/2, 0);
-  level_9_bottom_wall.setPosition(width/2, 386);
-moveWall=0;
+  level_9_bottom_wall.setPosition(width/2, 391);
+  level_9_top_wall2.scaleY=1;
+  level_9_bottom_wall2.scaleY=1;
+  level_9_bottom_wall2.y=398;
+  moveWall=0;
 }
 
 function startBorg(){
@@ -571,7 +586,11 @@ if(level==9){
   if(moveWall>50)
 {
   level_9_top_wall.y+=5;
+  level_9_top_wall2.scaleY+=2.5;
+  
   level_9_bottom_wall.y-=5;
+  level_9_bottom_wall2.y-=2.5;
+ level_9_bottom_wall2.scaleY+=2.5;
     moveWall=0;
 }
 }
