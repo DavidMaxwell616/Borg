@@ -1,5 +1,5 @@
-const TITLE_WIDTH = 871;
-const TITLE_HEIGHT = 142;
+const TITLE_WIDTH =145
+const TITLE_HEIGHT = 141;
 
 let player;
 let cursors;
@@ -10,7 +10,7 @@ let scoreText;
 let lives = 300;
 const BORGTIMERLENGTH = 100;
 let livesText;
-let level=9;
+let level=10;
 let levelText;
 let title;
 let startGame = false;
@@ -47,6 +47,8 @@ let emitter;
 let cat1;
 let cat2;
 let cat3;
+let cat4;
+
 let polys = [];
 let polygons;
 
@@ -130,3 +132,9 @@ var arrowStats = [
   var level_9_bottom_wall;
 var moveWall;
 var boss;
+var bossX;
+var bossY;
+const color = new Phaser.Display.Color();
+var gameoverText;
+var gameEnding = false;
+var gameOverCountdown=0;

@@ -6,26 +6,22 @@ function mainMenuCreate(scene) {
   splash.setOrigin(0, 0);
   maxxdaddy = scene.add.image(width * 0.9, height * 0.87, 'maxxdaddy');
   title = scene.add.sprite(width/2, height*.25, 'title');
-  title.setOrigin(.5);
+  title.setOrigin(.5).setScale(2);
   
-  var animConfig = {
+  const animConfig = {
     key: 'title',
-    frames: scene.anims.generateFrameNumbers('title'),
-    frameRate: 6,
+    frames: 'title',
+    frameRate: 20,
     repeat: -1
-  };
-   title.anims.load('title');
-//  title.anims.play('title');
+};
+
+scene.anims.create(animConfig);
+  title.play('title');
  var pointer = scene.input.activePointer;
  // console.log(pointer);
   scene.input.on('pointerdown', function(pointer){
     Start();
  });
-//  if (pointer.isDown) {
-//     console.log(pointer);
-
-//   }
-//     //  Start();
   scene.input.keyboard.on('keydown_SPACE', Start);
 
   function Start(){
@@ -37,4 +33,10 @@ function mainMenuCreate(scene) {
     gameCreate(scene);
 }
 
+
+
+}
+function showMainMenu(){
+  splash.visible = true;
+  title.visible = true;
 }

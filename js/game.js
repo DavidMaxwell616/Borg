@@ -14,7 +14,7 @@ var config = {
       gravity: {
         y: 0,
       },
-      debug: false,
+      debug: true,
     },
   },
 };
@@ -33,6 +33,8 @@ function create() {
 
 function gameCreate() {
   score = 0;
+  level = 1;
+  lives = 3;
   objectData = _scene.cache.json.get('levelData');
   polygons = _scene.add.group()
   polyImages = _scene.add.group()
@@ -42,7 +44,7 @@ function gameCreate() {
   player.body.label = 'player';
   player.dying = false;
 
-  _scene.anims.create({
+   _scene.anims.create({
     key: 'run',
     frames: _scene.anims.generateFrameNumbers('player', {
       start: 0,
@@ -70,7 +72,7 @@ function gameCreate() {
     height * 0.2,
   );
 
-  numGuards = 0;//level + 4;
+  numGuards = level + 4;
   initEnemies();
   buildLevel(level);
 
@@ -82,7 +84,9 @@ function gameCreate() {
   cat3 = _scene.matter.world.nextCategory();
   BORG.setCollisionCategory(cat3);
   BORG.setCollidesWith([cat3,cat2]);
-  
+  BORG.setCollidesWith([cat3,cat1]);
+  BORG.setCollidesWith([cat3,cat4]);
+ 
   scoreText = _scene.add.text(
     width * 0.31,
     height * 0.9,
@@ -219,12 +223,17 @@ function gameCreate() {
         resetWalls();
       }
       else if (bodyA.label == 'boss' && bodyB.label == 'bullet') {
-          console.log('game over!')
-      }
-      console.log(bodyA.label,bodyB.label);
+          player.destroy();
+          BORG.destroy();
+          boss.destroy();
+          bodyB.gameObject.destroy();
+          gameEnding = true;
+        }
     }
   });
-
+  gameOverText = _scene.add.image(width/2,height/2, 'game over');
+  gameOverText.visible = false;
+  gameOverText.setDepth(0);
 }
 
 function setUpArrows(){
@@ -269,6 +278,7 @@ function Fire(){
   playerYSpeed = 0;
   shooting = true;
 }
+
 function movePlayer(xv, yv) {
   if (xv != 0) {
     if (playerXSpeed === -xv) {
@@ -352,7 +362,8 @@ function initEnemies() {
     let x = Phaser.Math.Between(200, width - 50);
     let y = Phaser.Math.Between(50, 350);
     guards[index] = _scene.matter.add.sprite(x, y, 'guard');
-
+    var guard = guards[index];
+ 
     _scene.anims.create({
       key: 'guardRun',
       frames: _scene.anims.generateFrameNumbers('guard', {
@@ -362,13 +373,16 @@ function initEnemies() {
       frameRate: 10,
       repeat: -1
     });
-    guards[index].setFixedRotation();
-    guards[index].anims.load('guardRun');
-    guards[index].setCollisionCategory(cat1);
-    guards[index].body.dying = false;
-    guards[index].body.collideWorldBounds = true;
-    guards[index].setOrigin(0.5).setScale(xScale, yScale);
-    guards[index].body.label = 'guard';
+    guard.setFixedRotation();
+    guard.anims.load('guardRun');
+    cat4 = _scene.matter.world.nextCategory();
+    guard.setCollisionCategory(cat4);
+    guard.setCollidesWith([cat4,cat1]);
+   // guards[index].setCollidesWith([cat4,cat4]);
+    guard.body.dying = false;
+    guard.body.collideWorldBounds = true;
+    guard.setOrigin(0.5).setScale(xScale, yScale);
+    guard.body.label = 'guard';
   }
 }
 
@@ -463,7 +477,7 @@ function buildLevel() {
   {
     boss = _scene.matter.add.sprite(width*.66, 200, 'boss');
     boss.body.label = 'boss';
-    boss.setCollisionCategory(cat1);
+    boss.setCollisionCategory(cat4);
     boss.setFixedRotation();
   }
 }
@@ -479,7 +493,7 @@ function getRootBody(body) {
 }
 
 function moveEnemies() {
-  for (let index = 0; index < numGuards; index++) {
+  for (let index = 0; index < guards.length; index++) {
     var guard = guards[index];
     if (guard.active) {
       var guardXMove = 0;
@@ -536,6 +550,7 @@ function startBorg(){
   BORG.visible = true;
   BORG.setPosition(xStart, yStart);
 }
+
 function MoveBorg() {
   if (player.x > BORG.x || player.x < BORG.x && BORG.active)
     BORG.setVelocityX(1);
@@ -556,13 +571,50 @@ function MoveBorg() {
     borgYPath -= .1;
 
 }
-// the game loop. Game logic lives in here.
-// is called every frame
+
 function update() {
 
   if (!startGame)
     return;
-  if (borgTimer > 0)
+
+  if(gameEnding || lives==0)
+    {
+      gameOverText.visible = true;
+      color.random(50);
+      gameOverText.tint = color.color;
+      gameOverText.setScale(3);
+      guards.forEach(guard => {
+        if (guard.gameObject != null){
+        guard.gameObject.destroy();
+      _scene.matter.world.remove(guard);
+      player.destroy();
+        }
+      });
+      _scene.time.delayedCall(1000, () => {
+        gameOverText.visible = false;
+          gameOver = true;
+          clearLevel();
+          scoreboard.visible = false;
+          scoreText.visible = false;
+          livesText.visible = false;
+          levelText.visible = false;
+          for (let index = 0; index < arrows.length; index++) {
+            const arrow = arrows[index];
+            arrow.visible = false;
+          }
+          startGame = false;
+          gameEnding = false;
+          showMainMenu();
+        });
+  return;
+}
+    //}
+
+if(gameOver)
+{
+   return;
+}
+    if (borgTimer > 0)
     borgTimer--;
   if (borgTimer == 0 && !BORG.active) {
      startBorg();
@@ -575,7 +627,7 @@ function update() {
       player.setPosition(xStart, yStart);
       level++;
       buildLevel(level);
-      numGuards = 0;//level + 4;
+      numGuards = level + 4;
       guardsLeft = numGuards;
       initEnemies(this);
       resetBorg();
@@ -622,6 +674,7 @@ function restart() {
   lives--;
   game.state.restart();
 }
+
 
 function render() {
 

@@ -1,7 +1,5 @@
 function preload() {
-  const TITLE_WIDTH = 464;
-  const TITLE_HEIGHT = 79;
-
+  
   this.scale.pageAlignHorizontally = true;
   this.scale.pageAlignVertically = true;
   this.scale.refresh();
@@ -27,11 +25,12 @@ function preload() {
   this.load.image('level 9 bottom wall 2', 'level_9_bottom_wall2.png');
   this.load.image('level 10', 'level_10.png');
   this.load.image('boss', 'boss.png');
+  this.load.image('game over', 'game_over.png');
   this.load.spritesheet(
     'title',
-    'title_low_low_res.png', {
-      frameWidth: TITLE_WIDTH,
-      frameHeight: TITLE_HEIGHT
+    'borg title.png', {
+      frameWidth: 375,
+      frameHeight: 79
     }
   );
 
