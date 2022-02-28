@@ -53,12 +53,19 @@ function gameCreate() {
     frameRate: 10,
     repeat: -1
   });
+
+  cat1 = _scene.matter.world.nextCategory();
+  cat2 = _scene.matter.world.nextCategory();
+  cat3 = _scene.matter.world.nextCategory();
+  cat4 = _scene.matter.world.nextCategory();
+  cat5 = _scene.matter.world.nextCategory();
+
   player.setFixedRotation();
   player.anims.load('run');
-  cat1 = _scene.matter.world.nextCategory();
   player.setCollisionCategory(cat1);
-  cat2 = _scene.matter.world.nextCategory();
-  player.setCollidesWith([cat1, cat2]);
+ // player.setCollidesWith([cat1, cat2]);
+ // player.setCollidesWith([cat1, cat3]);
+ // player.setCollidesWith([cat1, cat4]);
   playerXSpeed = 0;
   playerYSpeed = 0;
   player.setDepth(1)
@@ -81,11 +88,8 @@ function gameCreate() {
   BORG.body.label = 'BORG';
   BORG.visible = false;
   BORG.active = false;
-  cat3 = _scene.matter.world.nextCategory();
-  BORG.setCollisionCategory(cat3);
-  BORG.setCollidesWith([cat3,cat2]);
-  BORG.setCollidesWith([cat3,cat1]);
-  BORG.setCollidesWith([cat3,cat4]);
+  BORG.setCollisionCategory(cat2);
+ // BORG.setCollidesWith([cat2,cat4]);
  
   scoreText = _scene.add.text(
     width * 0.31,
@@ -177,10 +181,17 @@ function gameCreate() {
  });
  _scene.input.on('gameobjectdown',onObjectClicked);
 
-  _scene.matter.world.on('collisionstart', function (event) {
+  _scene.matter.world.on('collisionstart', handleCollision);
+  gameOverText = _scene.add.image(width/2,height/2, 'game over');
+  gameOverText.visible = false;
+  gameOverText.setDepth(0);
+}
+
+function handleCollision(event){
     for (var i = 0; i < event.pairs.length; i++) {
       var bodyA = getRootBody(event.pairs[i].bodyA);
       var bodyB = getRootBody(event.pairs[i].bodyB);
+      //kill bullet when it hits an obstacle
       if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'obstacle') {
         bodyA.gameObject.destroy();
         _scene.matter.world.remove(bodyA);
@@ -188,7 +199,9 @@ function gameCreate() {
         if (bodyB.gameObject != null)
           bodyB.gameObject.destroy();
         _scene.matter.world.remove(bodyB);
-      } else if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'guard') {
+      } 
+      //bullet hits guard
+      else if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'guard') {
         killGuard(bodyB);
         if (bodyA.gameObject != null)
           bodyA.gameObject.destroy();
@@ -198,9 +211,10 @@ function gameCreate() {
         if (bodyB.gameObject != null)
           bodyB.gameObject.destroy();
         _scene.matter.world.remove(bodyB);
-      } else if (bodyA.label == 'player' && bodyB.label == 'obstacle') {
-        fryPlayer();
-      } else if (bodyB.label == 'player' && bodyA.label == 'obstacle') {
+      }
+        else if (bodyA.label == 'player' && bodyB.label == 'obstacle'
+        || 
+        bodyB.label == 'player' && bodyA.label == 'obstacle') {
         fryPlayer();
       } else if (bodyA.label == 'player' && bodyB.label == 'guard') {
         fryPlayer();
@@ -222,6 +236,9 @@ function gameCreate() {
         fryPlayer();
         resetWalls();
       }
+      else if(bodyA.label == 'guard' && bodyB.label == 'guard' ) {
+      console.log('guard hit guard')
+      }
       else if (bodyA.label == 'boss' && bodyB.label == 'bullet') {
           player.destroy();
           BORG.destroy();
@@ -230,10 +247,6 @@ function gameCreate() {
           gameEnding = true;
         }
     }
-  });
-  gameOverText = _scene.add.image(width/2,height/2, 'game over');
-  gameOverText.visible = false;
-  gameOverText.setDepth(0);
 }
 
 function setUpArrows(){
@@ -309,7 +322,7 @@ function shootBullet(bullet, direction) {
   bullet.setVelocityX(direction.xv);
   bullet.setVelocityY(direction.yv);
   bullet.setFrictionAir(0);
-  bullet.setCollisionCategory(cat1);
+  bullet.setCollisionCategory(cat2);
   setBulletAngle(bullet,direction);
 }
 
@@ -354,7 +367,8 @@ function guardShoot(guard) {
   let angle = Phaser.Math.Angle.Between(player.x, player.y, guard.x, guard.y);
   bullet.rotation = angle;
   bullet.setFrictionAir(0);
-  bullet.setCollisionCategory(cat1);
+  bullet.setCollisionCategory(cat2);
+  //bullet.setCollidesWith([cat2,cat4]);
 }
 
 function initEnemies() {
@@ -375,10 +389,9 @@ function initEnemies() {
     });
     guard.setFixedRotation();
     guard.anims.load('guardRun');
-    cat4 = _scene.matter.world.nextCategory();
     guard.setCollisionCategory(cat4);
-    guard.setCollidesWith([cat4,cat1]);
-   // guards[index].setCollidesWith([cat4,cat4]);
+  //  guard.setCollidesWith([cat4,cat2]);
+  //  guard.setCollidesWith([cat4,cat3]);
     guard.body.dying = false;
     guard.body.collideWorldBounds = true;
     guard.setOrigin(0.5).setScale(xScale, yScale);
@@ -457,7 +470,7 @@ function buildLevel() {
       .setStatic(true)
       .setOrigin(0);
     objBody.body.label = 'obstacle';
-    objBody.setCollisionCategory(cat1);
+    objBody.setCollisionCategory(cat3);
     polygons.add(poly);
     levelBkgd.setDepth(0);
   }
@@ -466,11 +479,11 @@ function buildLevel() {
     level_9_top_wall = _scene.matter.add.sprite(width/2, 0, 'level 9 top wall');
     level_9_top_wall2 = _scene.add.sprite(width/2, 2, 'level 9 top wall 2');
      level_9_top_wall.body.label = 'wall';
-     level_9_top_wall.setCollisionCategory(cat1);
+     level_9_top_wall.setCollisionCategory(cat3);
      level_9_bottom_wall = _scene.matter.add.sprite(width/2, 391, 'level 9 bottom wall');
      level_9_bottom_wall2 = _scene.add.sprite(width/2, 398, 'level 9 bottom wall 2');
      level_9_bottom_wall.body.label = 'wall';
-    level_9_bottom_wall.setCollisionCategory(cat1);
+    level_9_bottom_wall.setCollisionCategory(cat3);
     moveWall=0;
   }
   if(level==10)
