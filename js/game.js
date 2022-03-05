@@ -83,13 +83,15 @@ function gameCreate() {
   initEnemies();
   buildLevel(level);
 
-  BORG = _scene.matter.add.sprite(xStart, 500, 'borg');
-  BORG.setOrigin(0.5);
-  BORG.body.label = 'BORG';
-  BORG.visible = false;
-  BORG.active = false;
-  BORG.setCollisionCategory(cat2);
- // BORG.setCollidesWith([cat2,cat4]);
+  borg = _scene.matter.add.sprite(xStart, 500, 'borg');
+  borg.setOrigin(0.5);
+  borg.body.label = 'borg';
+  borg.visible = false;
+  borg.active = false;
+  borg.setCollisionCategory(cat5);
+  borg.setCollidesWith([cat5,cat1]);
+  borg.setCollidesWith([cat5,cat4]);
+  borg.setFixedRotation();
  
   scoreText = _scene.add.text(
     width * 0.31,
@@ -179,12 +181,12 @@ function gameCreate() {
     if(pointer.y<400)
     Fire();
  });
- _scene.input.on('gameobjectdown',onObjectClicked);
-
+  _scene.input.on('gameobjectdown',onObjectClicked);
   _scene.matter.world.on('collisionstart', handleCollision);
+
   gameOverText = _scene.add.image(width/2,height/2, 'game over');
   gameOverText.visible = false;
-  gameOverText.setDepth(0);
+  gameOverText.setDepth(1);
 }
 
 function handleCollision(event){
@@ -192,63 +194,73 @@ function handleCollision(event){
       var bodyA = getRootBody(event.pairs[i].bodyA);
       var bodyB = getRootBody(event.pairs[i].bodyB);
       //kill bullet when it hits an obstacle
-      if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'obstacle') {
-        bodyA.gameObject.destroy();
-        _scene.matter.world.remove(bodyA);
-      } else if ((bodyB.label == 'bullet' || bodyB.label == 'guardBullet') && bodyA.label == 'obstacle') {
-        if (bodyB.gameObject != null)
-          bodyB.gameObject.destroy();
-        _scene.matter.world.remove(bodyB);
-      } 
+      if (bodyA.label == 'bullet' && bodyB.label == 'obstacle'
+          || bodyB.label == 'bullet' && bodyA.label == 'obstacle') {
+        var bullet = bodyA.label=='bullet' ? bodyA : bodyB;
+        if (bullet.gameObject != null)
+     {   bullet.gameObject.destroy();
+        _scene.matter.world.remove(bullet);
+      }
+    } 
       //bullet hits guard
-      else if ((bodyA.label == 'bullet' || bodyA.label == 'guardBullet') && bodyB.label == 'guard') {
-        killGuard(bodyB);
-        if (bodyA.gameObject != null)
-          bodyA.gameObject.destroy();
-        _scene.matter.world.remove(bodyA);
-      } else if ((bodyB.label == 'bullet' || bodyB.label == 'guardBullet') && bodyA.label == 'guard') {
-        killGuard(bodyA);
-        if (bodyB.gameObject != null)
-          bodyB.gameObject.destroy();
-        _scene.matter.world.remove(bodyB);
-      }
-        else if (bodyA.label == 'player' && bodyB.label == 'obstacle'
-        || 
-        bodyB.label == 'player' && bodyA.label == 'obstacle') {
+      else if (bodyA.label == 'bullet' && bodyB.label == 'guard'
+      ||
+      bodyB.label == 'bullet' && bodyA.label == 'guard') {
+        var guard = bodyA.label=='guard' ? bodyA : bodyB;
+        var bullet = bodyA.label=='bullet' ? bodyA : bodyB;
+        killGuard(guard);
+        if (bullet.gameObject != null)
+          bullet.gameObject.destroy();
+        _scene.matter.world.remove(bullet);
+      } 
+      else if ((bodyA.label == 'player' && bodyB.label == 'obstacle') ||
+      (bodyB.label == 'player' && bodyA.label == 'obstacle')) {
         fryPlayer();
-      } else if (bodyA.label == 'player' && bodyB.label == 'guard') {
+      } 
+      else if (bodyA.label == 'player' && bodyB.label == 'guard' ||
+               bodyB.label == 'player' && bodyA.label == 'guard') {
+      var guard = bodyA.label=='guard' ? bodyA : bodyB;
         fryPlayer();
-        bodyB.gameObject.destroy();
-        _scene.matter.world.remove(bodyB);
-      } else if (bodyB.label == 'player' && bodyA.label == 'guard') {
+      killGuard(guard);
+    } 
+      else if (bodyA.label == 'bullet' && bodyB.label == 'player' 
+      || bodyB.label == 'bullet' && bodyA.label == 'player') {
+        var bullet = bodyA.label=='bullet' ? bodyA : bodyB;
         fryPlayer();
-        bodyA.gameObject.destroy();
-        _scene.matter.world.remove(bodyA);
-      } else if (bodyA.label == 'player' && bodyB.label == 'guardBullet') {
-        fryPlayer();
-        bodyB.gameObject.destroy();
-        _scene.matter.world.remove(bodyB);
-      } else if (bodyA.label == 'guardBullet' && bodyB.label == 'player') {
-        fryPlayer();
-        bodyA.gameObject.destroy();
-        _scene.matter.world.remove(bodyA);
-      } else if (bodyA.label == 'player' && bodyB.label == 'wall') {
-        fryPlayer();
-        resetWalls();
-      }
-      else if(bodyA.label == 'guard' && bodyB.label == 'guard' ) {
-      console.log('guard hit guard')
-      }
-      else if (bodyA.label == 'boss' && bodyB.label == 'bullet') {
-          player.destroy();
-          BORG.destroy();
-          boss.destroy();
-          bodyB.gameObject.destroy();
-          gameEnding = true;
+        if (bullet.gameObject != null){
+        bullet.gameObject.destroy();
+        _scene.matter.world.remove(bullet);
         }
+      } 
+       else if(bodyA.label == 'borg' && bodyB.label == 'guard' 
+       || bodyB.label == 'borg' && bodyA.label == 'guard' ) {
+        var guard = bodyA.label=='guard' ? bodyA : bodyB;
+        killGuard(guard);
+         }
+      else if(bodyA.label == 'borg' && bodyB.label == 'player'
+      || bodyB.label == 'borg' && bodyA.label == 'player' ) {
+        fryPlayer();
+        }
+     //else if (bodyA.label == 'player' && bodyB.label == 'wall') {
+      //   fryPlayer();
+      //   resetWalls();
+      // }
+      // else if (bodyA.label == 'boss' && bodyB.label == 'bullet') {
+      //  destroyWorld();
+      //   }
     }
 }
-
+function destroyWorld(){
+  player.destroy();
+  _scene.matter.world.remove(player);
+  borg.destroy();
+  _scene.matter.world.remove(borg);
+  boss.destroy();
+  _scene.matter.world.remove(boss);
+  bodyB.gameObject.destroy();
+  _scene.matter.world.remove(bodyB);
+  gameEnding = true;
+}
 function setUpArrows(){
   var y = height-10;
   for (let index = 0; index < arrows.length; index++) {
@@ -264,7 +276,17 @@ function setUpArrows(){
    arrows[index].angle =arrow.angle;  
   }
 }
-
+function killGuard(guard)
+{
+  guard.dying = true;
+  _scene.time.delayedCall(500, () => {
+    if (guard.gameObject != null)
+      guard.gameObject.destroy();
+    _scene.matter.world.remove(guard);
+    guardsLeft--;
+    score += 50;
+  });
+}
 function setFrame(xv, yv) {
   if (yv == 0 && xv != 0)
     return 0;
@@ -328,7 +350,7 @@ function shootBullet(bullet, direction) {
 
 function setBulletAngle(bullet, direction){
   var angle = Math.abs(direction.xv+direction.yv);
-  if(angle==10)
+   if(angle==10)
     bullet.angle = 45;
   else if(angle==0)
     bullet.angle = 135;
@@ -341,7 +363,7 @@ function guardShoot(guard) {
   //some light randomness to the bullet angle
   bulletDirection += ((Math.random() / 10) + (-(Math.random() / 10)));
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
-  bullet.body.label = 'guardBullet';
+  bullet.body.label = 'bullet';
   var xOffset = 0;
   var yOffset = 0;
   var xBulletSpeed = 5;
@@ -406,27 +428,16 @@ function updateStats() {
 }
 
 function fryPlayer() {
+  if (debug) return;
   player.dying = true;
   _scene.time.delayedCall(500, () => {
     player.dying = false;
     player.setPosition(xStart, yStart);
     player.tint = 0xffffff;
     lives--;
-    resetBorg();
+    resetborg();
   });
 }
-
-function killGuard(guard) {
-  guard.dying = true;
-  _scene.time.delayedCall(500, () => {
-    if (guard.gameObject != null)
-      guard.gameObject.destroy();
-    _scene.matter.world.remove(guard);
-    guardsLeft--;
-    score += 50;
-  });
-}
-
 
 function buildLevel() {
   levelData = objectData['level_' + level];
@@ -542,11 +553,11 @@ function moveEnemies() {
   }
 }
 
-function resetBorg(){
-  BORG.setPosition(borgXStart, borgYStart);
-  BORG.visible = false;
-  borgTimer = (10-level) * BORGTIMERLENGTH;
-  BORG.active = false;
+function resetborg(){
+  borg.setPosition(borgXStart, borgYStart);
+  borg.visible = false;
+  borgTimer = (10-level) * borgTIMERLENGTH;
+  borg.active = false;
 }
 
 function resetWalls(){
@@ -558,29 +569,29 @@ function resetWalls(){
   moveWall=0;
 }
 
-function startBorg(){
-  BORG.active = true;
-  BORG.visible = true;
-  BORG.setPosition(xStart, yStart);
+function startborg(){
+  borg.active = true;
+  borg.visible = true;
+  borg.setPosition(xStart, yStart);
 }
 
-function MoveBorg() {
-  if (player.x > BORG.x || player.x < BORG.x && BORG.active)
-    BORG.setVelocityX(1);
-  BORG.setVelocityY(borgYV);
-  BORG.setDepth(0);
-  if (BORG.x > game.width) resetBorg();
-  if (Math.abs(borgYPath - BORG.y) < 20)
-    BORG.setFrame(1);
+function Moveborg() {
+  if (player.x > borg.x || player.x < borg.x && borg.active)
+    borg.setVelocityX(1);
+  borg.setVelocityY(borgYV);
+  borg.setDepth(0);
+  if (borg.x > game.width) resetborg();
+  if (Math.abs(borgYPath - borg.y) < 20)
+    borg.setFrame(1);
   else
-    BORG.setFrame(0);
-  if (BORG.y > borgYPath)
+    borg.setFrame(0);
+  if (borg.y > borgYPath)
     borgYV = -5;
   borgYV += .1;
 
-  if (player.y > BORG.y)
+  if (player.y > borg.y)
     borgYPath += .1;
-  if (player.y < BORG.y)
+  if (player.y < borg.y)
     borgYPath -= .1;
 
 }
@@ -600,9 +611,10 @@ function update() {
         if (guard.gameObject != null){
         guard.gameObject.destroy();
       _scene.matter.world.remove(guard);
-      player.destroy();
         }
       });
+      player.destroy();
+      _scene.matter.world.remove(player);
       _scene.time.delayedCall(1000, () => {
         gameOverText.visible = false;
           gameOver = true;
@@ -629,8 +641,8 @@ if(gameOver)
 }
     if (borgTimer > 0)
     borgTimer--;
-  if (borgTimer == 0 && !BORG.active) {
-     startBorg();
+  if (borgTimer == 0 && !borg.active) {
+     startborg();
   }
   if (player.x > 885) {
     if (guardsLeft > 0)
@@ -643,7 +655,7 @@ if(gameOver)
       numGuards = level + 4;
       guardsLeft = numGuards;
       initEnemies(this);
-      resetBorg();
+      resetborg();
     }
   }
 if(level==9){
@@ -666,8 +678,8 @@ if(level==9){
     player.tint = Math.random() * 0xffffff;
   }
 
-  if (BORG.visible)
-    MoveBorg();
+  if (borg.visible)
+    Moveborg();
   if (playerXSpeed === 0 && playerYSpeed === 0)
     player.anims.pause(player.anims.currentAnim.frames[0]);
   player.setVelocityX(playerXSpeed);
@@ -679,7 +691,8 @@ if(level==9){
 function clearLevel() {
   polygons.children.each(object => {
     object.destroy();
-  })
+    _scene.matter.world.remove(object);
+   })
   levelBkgd.visible = false;
 }
 
