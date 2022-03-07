@@ -72,6 +72,8 @@ function gameCreate() {
   _scene.matter.world.setBounds(0, 0, width, height);
   maxxdaddy.visible = false;
 
+  borgTimer = (10-level) * borgTIMERLENGTH;
+
   scoreboard = _scene.add.image(0, height * 0.8, 'scoreboard');
   scoreboard.setOrigin(0);
   scoreboard.setDisplaySize(
@@ -82,16 +84,6 @@ function gameCreate() {
   numGuards = level + 4;
   initEnemies();
   buildLevel(level);
-
-  borg = _scene.matter.add.sprite(xStart, 500, 'borg');
-  borg.setOrigin(0.5);
-  borg.body.label = 'borg';
-  borg.visible = false;
-  borg.active = false;
-  borg.setCollisionCategory(cat5);
-  borg.setCollidesWith([cat5,cat1]);
-  borg.setCollidesWith([cat5,cat4]);
-  borg.setFixedRotation();
  
   scoreText = _scene.add.text(
     width * 0.31,
@@ -303,12 +295,12 @@ function Fire(){
     xv: playerXSpeed * 5,
     yv: playerYSpeed * 5
   };
-  var frame = 2 + bulletDirection.yv;
-  player.setFrame(frame);
+  //  var frame = Math.abs(2 + bulletDirection.yv);
+  // player.setFrame(1);
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'bullet';
-  if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
-    shootBullet(bullet, bulletDirection);
+  // if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
+  shootBullet(bullet, bulletDirection);
   playerXSpeed = 0;
   playerYSpeed = 0;
   shooting = true;
@@ -338,7 +330,7 @@ function movePlayer(xv, yv) {
 function shootBullet(bullet, direction) {
   var offsetX = 0;
   var offsetY = 0;
-  offsetY = direction.yv * 2;
+  offsetY = direction.yv * 4;
   offsetX = direction.xv * 2;
   bullet.setPosition(player.x + offsetX + direction.xv, player.y + offsetY + direction.yv);
   bullet.setVelocityX(direction.xv);
@@ -435,7 +427,7 @@ function fryPlayer() {
     player.setPosition(xStart, yStart);
     player.tint = 0xffffff;
     lives--;
-    resetborg();
+    killBorg();
   });
 }
 
@@ -553,13 +545,26 @@ function moveEnemies() {
   }
 }
 
-function resetborg(){
+function spawnBorg(){
+  borg = _scene.matter.add.sprite(xStart, 500, 'borg');
+  borg.setOrigin(0.5);
+  borg.body.label = 'borg';
+  borg.visible = true;
+  borg.active = true;
+  borg.setCollisionCategory(cat5);
+  borg.setCollidesWith([cat5,cat1]);
+  borg.setCollidesWith([cat5,cat4]);
+  borg.setFixedRotation();
   borg.setPosition(borgXStart, borgYStart);
-  borg.visible = false;
   borgTimer = (10-level) * borgTIMERLENGTH;
-  borg.active = false;
 }
-
+function killBorg(){
+  if(borg!=undefined){
+    borg.gameObject.destroy();
+    _scene.matter.world.remove(borg);
+    borgTimer = (10-level) * borgTIMERLENGTH;
+  }
+}
 function resetWalls(){
   level_9_top_wall.setPosition(width/2, 0);
   level_9_bottom_wall.setPosition(width/2, 391);
@@ -569,18 +574,12 @@ function resetWalls(){
   moveWall=0;
 }
 
-function startborg(){
-  borg.active = true;
-  borg.visible = true;
-  borg.setPosition(xStart, yStart);
-}
-
-function Moveborg() {
+function moveBorg() {
   if (player.x > borg.x || player.x < borg.x && borg.active)
     borg.setVelocityX(1);
   borg.setVelocityY(borgYV);
   borg.setDepth(0);
-  if (borg.x > game.width) resetborg();
+  if (borg.x > game.width) killBorg();
   if (Math.abs(borgYPath - borg.y) < 20)
     borg.setFrame(1);
   else
@@ -631,6 +630,8 @@ function update() {
           gameEnding = false;
           showMainMenu();
         });
+        if(borgTimer>0)
+          borgTimer = (10-level) * borgTIMERLENGTH;
   return;
 }
     //}
@@ -641,8 +642,9 @@ if(gameOver)
 }
     if (borgTimer > 0)
     borgTimer--;
-  if (borgTimer == 0 && !borg.active) {
-     startborg();
+
+  if (borgTimer == 0) {
+     spawnBorg();
   }
   if (player.x > 885) {
     if (guardsLeft > 0)
@@ -655,7 +657,7 @@ if(gameOver)
       numGuards = level + 4;
       guardsLeft = numGuards;
       initEnemies(this);
-      resetborg();
+      killBorg();
     }
   }
 if(level==9){
@@ -678,8 +680,9 @@ if(level==9){
     player.tint = Math.random() * 0xffffff;
   }
 
-  if (borg.visible)
-    Moveborg();
+  if (borg!=undefined && borg.visible)
+    moveBorg();
+
   if (playerXSpeed === 0 && playerYSpeed === 0)
     player.anims.pause(player.anims.currentAnim.frames[0]);
   player.setVelocityX(playerXSpeed);
