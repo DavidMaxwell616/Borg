@@ -578,7 +578,7 @@ function moveBorg() {
   if (player.x > borg.x || player.x < borg.x && borg.active)
     borg.setVelocityX(1);
   borg.setVelocityY(borgYV);
-  borg.setDepth(0);
+  borg.setDepth(1);
   if (borg.x > game.width) killBorg();
   if (Math.abs(borgYPath - borg.y) < 20)
     borg.setFrame(1);
