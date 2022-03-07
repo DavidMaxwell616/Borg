@@ -560,7 +560,7 @@ function spawnBorg(){
 }
 function killBorg(){
   if(borg!=undefined){
-    borg.gameObject.destroy();
+    borg.destroy();
     _scene.matter.world.remove(borg);
     borgTimer = (10-level) * borgTIMERLENGTH;
   }
