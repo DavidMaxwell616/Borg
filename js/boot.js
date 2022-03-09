@@ -10,7 +10,8 @@ let scoreText;
 let lives = 300;
 const borgTIMERLENGTH = 100;
 let livesText;
-let level=10;
+const START_LEVEL = 1;
+let level;
 let levelText;
 let title;
 let startGame = false;
@@ -51,6 +52,8 @@ let cat4;
 let cat5;
 let polys = [];
 let polygons;
+let highScore = 0;
+var localStorageName = "borg";
 
 let playerXSpeed = 0;
 let playerYSpeed = 0;

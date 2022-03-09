@@ -33,7 +33,7 @@ function create() {
 
 function gameCreate() {
   score = 0;
-  level = 1;
+  level = START_LEVEL;
   lives = 3;
   objectData = _scene.cache.json.get('levelData');
   polygons = _scene.add.group()
@@ -43,6 +43,9 @@ function gameCreate() {
   player.body.collideWorldBounds = true;
   player.body.label = 'player';
   player.dying = false;
+  highScore = localStorage.getItem(localStorageName) == null ? 0 :
+  localStorage.getItem(localStorageName);
+
 
    _scene.anims.create({
     key: 'run',
@@ -602,6 +605,9 @@ function update() {
 
   if(gameEnding || lives==0)
     {
+      localStorage.setItem(localStorageName, highScore);
+      if (score > highScore)
+        highScore = score;
       gameOverText.visible = true;
       color.random(50);
       gameOverText.tint = color.color;
@@ -640,12 +646,8 @@ if(gameOver)
 {
    return;
 }
-    if (borgTimer > 0)
-    borgTimer--;
 
-  if (borgTimer == 0) {
-     spawnBorg();
-  }
+
   if (player.x > 885) {
     if (guardsLeft > 0)
       player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
@@ -669,7 +671,7 @@ if(level==9){
   
   level_9_bottom_wall.y-=5;
   level_9_bottom_wall2.y-=2.5;
- level_9_bottom_wall2.scaleY+=2.5;
+  level_9_bottom_wall2.scaleY+=2.5;
     moveWall=0;
 }
 }
@@ -680,9 +682,17 @@ if(level==9){
     player.tint = Math.random() * 0xffffff;
   }
 
+  if (borgTimer > 0)
+    borgTimer--;
+    if (borgTimer == 0) {
+      console.log(borg);
+      spawnBorg();
+   }
+
   if (borg!=undefined && borg.visible)
     moveBorg();
 
+ 
   if (playerXSpeed === 0 && playerYSpeed === 0)
     player.anims.pause(player.anims.currentAnim.frames[0]);
   player.setVelocityX(playerXSpeed);
