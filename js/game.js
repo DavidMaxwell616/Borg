@@ -43,6 +43,7 @@ function gameCreate() {
   player.body.collideWorldBounds = true;
   player.body.label = 'player';
   player.dying = false;
+  player.shooting = false;
   highScore = localStorage.getItem(localStorageName) == null ? 0 :
   localStorage.getItem(localStorageName);
 
@@ -75,8 +76,7 @@ function gameCreate() {
   _scene.matter.world.setBounds(0, 0, width, height);
   maxxdaddy.visible = false;
 
-  borgTimer = (10-level) * borgTIMERLENGTH;
-
+  resetBorgTimer();
   scoreboard = _scene.add.image(0, height * 0.8, 'scoreboard');
   scoreboard.setOrigin(0);
   scoreboard.setDisplaySize(
@@ -84,7 +84,7 @@ function gameCreate() {
     height * 0.2,
   );
 
-  numGuards = level + 4;
+  guardCount = numGuards = level + 4;
   initEnemies();
   buildLevel(level);
  
@@ -126,6 +126,7 @@ function gameCreate() {
 
   _scene.input.keyboard.on('keydown_RIGHT', function (event) {
     if (player.dying) return;
+    
     movePlayer(1, 0);
     player.flipX = false;
   });
@@ -144,9 +145,9 @@ function gameCreate() {
     Fire();
   }, _scene);
 
-  _scene.input.keyboard.on('keyup_SPACE', function (event) {
-    shooting = false;
-  });
+  // _scene.input.keyboard.on('keyup_SPACE', function (event) {
+  //   shooting = false;
+  // });
 
   function onObjectClicked(pointer,gameObject){
     
@@ -278,7 +279,7 @@ function killGuard(guard)
     if (guard.gameObject != null)
       guard.gameObject.destroy();
     _scene.matter.world.remove(guard);
-    guardsLeft--;
+    guardCount--;
     score += 50;
   });
 }
@@ -298,18 +299,19 @@ function Fire(){
     xv: playerXSpeed * 5,
     yv: playerYSpeed * 5
   };
-  //  var frame = Math.abs(2 + bulletDirection.yv);
-  // player.setFrame(1);
+  var frame = 5; //Math.abs(2 + bulletDirection.yv);
+  player.anims.pause(player.anims.currentAnim.frames[frame]);
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'bullet';
-  // if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
-  shootBullet(bullet, bulletDirection);
+  if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
+      shootBullet(bullet, bulletDirection);
   playerXSpeed = 0;
   playerYSpeed = 0;
-  shooting = true;
+  player.shooting = true;
 }
 
 function movePlayer(xv, yv) {
+  player.shooting= false;
   if (xv != 0) {
     if (playerXSpeed === -xv) {
       playerXSpeed = 0;
@@ -363,6 +365,7 @@ function guardShoot(guard) {
   var yOffset = 0;
   var xBulletSpeed = 5;
   var yBulletSpeed = 5;
+
   bullet.setFixedRotation();
   // Calculate X and y velocity of bullet to moves it from shooter to target
   if (player.x >= guard.x) {
@@ -377,9 +380,12 @@ function guardShoot(guard) {
     yBulletSpeed = -yBulletSpeed;
     yOffset = -guard.height / 2;
   }
+
   //  console.log(guard.body.id, bulletDirection);
   bullet.setVelocityX(xBulletSpeed * Math.sin(Math.abs(bulletDirection)));
   bullet.setVelocityY(yBulletSpeed * Math.cos(Math.abs(bulletDirection)));
+  // offsetY = direction.yv * 4;
+  // offsetX = direction.xv * 2;
   bullet.setPosition(guard.x + xOffset, guard.y + yOffset);
   let angle = Phaser.Math.Angle.Between(player.x, player.y, guard.x, guard.y);
   bullet.rotation = angle;
@@ -409,6 +415,7 @@ function initEnemies() {
     guard.setCollisionCategory(cat4);
   //  guard.setCollidesWith([cat4,cat2]);
   //  guard.setCollidesWith([cat4,cat3]);
+    guard.anims.play('guardRun');
     guard.body.dying = false;
     guard.body.collideWorldBounds = true;
     guard.setOrigin(0.5).setScale(xScale, yScale);
@@ -423,7 +430,7 @@ function updateStats() {
 }
 
 function fryPlayer() {
-  if (debug) return;
+  if (GOD_MODE) return;
   player.dying = true;
   _scene.time.delayedCall(500, () => {
     player.dying = false;
@@ -535,10 +542,9 @@ function moveEnemies() {
       }
       guard.x += guardXMove;
       guard.y += guardYMove;
-      if (guardXMove != 0 || guardYMove != 0)
-        guard.anims.play('guardRun');
-      else
-        guard.anims.pause(guard.anims.currentAnim.frames[0]);
+//      if (guardXMove != 0 || guardYMove != 0)
+//      else
+//        guard.anims.pause(guard.anims.currentAnim.frames[0]);
       let shoot = Phaser.Math.Between(1, 200);
       if (shoot == 200) {
         guardShoot(guard)
@@ -548,24 +554,28 @@ function moveEnemies() {
   }
 }
 
+function resetBorgTimer(){
+  borgTimer = (12-level) * borgTIMERLENGTH;
+}
+
 function spawnBorg(){
   borg = _scene.matter.add.sprite(xStart, 500, 'borg');
   borg.setOrigin(0.5);
   borg.body.label = 'borg';
-  borg.visible = true;
-  borg.active = true;
   borg.setCollisionCategory(cat5);
   borg.setCollidesWith([cat5,cat1]);
   borg.setCollidesWith([cat5,cat4]);
   borg.setFixedRotation();
   borg.setPosition(borgXStart, borgYStart);
-  borgTimer = (10-level) * borgTIMERLENGTH;
+  borgAlive = true;
 }
+
 function killBorg(){
   if(borg!=undefined){
     borg.destroy();
     _scene.matter.world.remove(borg);
-    borgTimer = (10-level) * borgTIMERLENGTH;
+    borgAlive = false;
+    resetBorgTimer();
   }
 }
 function resetWalls(){
@@ -582,7 +592,10 @@ function moveBorg() {
     borg.setVelocityX(1);
   borg.setVelocityY(borgYV);
   borg.setDepth(1);
-  if (borg.x > game.width) killBorg();
+  if (borg.x > 885){
+    killBorg();
+    return;
+  }
   if (Math.abs(borgYPath - borg.y) < 20)
     borg.setFrame(1);
   else
@@ -603,7 +616,53 @@ function update() {
   if (!startGame)
     return;
 
-  if(gameEnding || lives==0)
+  if (player.x > 885) {
+    if (guardCount > 0){
+      player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
+      killBorg();
+    }
+    else {
+      clearLevel(this);
+      player.setPosition(xStart, yStart);
+      level++;
+      buildLevel(level);
+      guardCount = numGuards = level + 4;
+      initEnemies(this);
+      killBorg();
+    }
+  }
+if(level==9){
+  moveWall++;
+  if(moveWall>50)
+{
+  level_9_top_wall.y+=5;
+  level_9_top_wall2.scaleY+=2.5;
+  
+  level_9_bottom_wall.y-=5;
+  level_9_bottom_wall2.y-=2.5;
+  level_9_bottom_wall2.scaleY+=2.5;
+    moveWall=0;
+}
+}
+  if (player.dying) {
+    player.anims.pause(player.anims.currentAnim.frames[0]);
+    playerXSpeed = 0;
+    playerYSpeed = 0;
+    player.tint = Math.random() * 0xffffff;
+  }
+
+  if (borgTimer > 0){
+    borgTimer--;
+  }
+
+  if (borgTimer == 0 && !borgAlive) {
+      spawnBorg();
+  }
+
+  if (borg!=undefined && borg.visible)
+    moveBorg();
+
+   if(gameEnding || lives==0)
     {
       localStorage.setItem(localStorageName, highScore);
       if (score > highScore)
@@ -636,8 +695,7 @@ function update() {
           gameEnding = false;
           showMainMenu();
         });
-        if(borgTimer>0)
-          borgTimer = (10-level) * borgTIMERLENGTH;
+ 
   return;
 }
     //}
@@ -647,54 +705,8 @@ if(gameOver)
    return;
 }
 
-
-  if (player.x > 885) {
-    if (guardsLeft > 0)
-      player.setPosition(xStart, yStart).setVelocityX(0).setVelocityY(0);
-    else {
-      clearLevel(this);
-      player.setPosition(xStart, yStart);
-      level++;
-      buildLevel(level);
-      numGuards = level + 4;
-      guardsLeft = numGuards;
-      initEnemies(this);
-      killBorg();
-    }
-  }
-if(level==9){
-  moveWall++;
-  if(moveWall>50)
-{
-  level_9_top_wall.y+=5;
-  level_9_top_wall2.scaleY+=2.5;
-  
-  level_9_bottom_wall.y-=5;
-  level_9_bottom_wall2.y-=2.5;
-  level_9_bottom_wall2.scaleY+=2.5;
-    moveWall=0;
-}
-}
-  if (player.dying) {
-    player.anims.pause(player.anims.currentAnim.frames[0]);
-    playerXSpeed = 0;
-    playerYSpeed = 0;
-    player.tint = Math.random() * 0xffffff;
-  }
-
-  if (borgTimer > 0)
-    borgTimer--;
-    if (borgTimer == 0) {
-      console.log(borg);
-      spawnBorg();
-   }
-
-  if (borg!=undefined && borg.visible)
-    moveBorg();
-
- 
-  if (playerXSpeed === 0 && playerYSpeed === 0)
-    player.anims.pause(player.anims.currentAnim.frames[0]);
+  if (playerXSpeed === 0 && playerYSpeed === 0 || player.shooting)
+    player.anims.pause(player.anims.currentAnim.frames[5]);
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
   updateStats();
@@ -707,6 +719,13 @@ function clearLevel() {
     _scene.matter.world.remove(object);
    })
   levelBkgd.visible = false;
+  if(level==9)
+  {  
+    level_9_top_wall.destroy();
+    level_9_bottom_wall.destroy();
+    _scene.matter.world.remove(level_9_top_wall);
+    _scene.matter.world.remove(level_9_bottom_wall);
+  }
 }
 
 function restart() {
