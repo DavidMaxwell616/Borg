@@ -299,8 +299,7 @@ function Fire(){
     xv: playerXSpeed * 5,
     yv: playerYSpeed * 5
   };
-  var frame = 5; //Math.abs(2 + bulletDirection.yv);
-  player.anims.pause(player.anims.currentAnim.frames[frame]);
+  player.anims.pause(player.anims.currentAnim.frames[0]);
   var bullet = _scene.matter.add.sprite(0, 0, 'bullet');
   bullet.body.label = 'bullet';
   if (bulletDirection.xv != 0 || bulletDirection.yv != 0)
@@ -698,15 +697,21 @@ if(level==9){
  
   return;
 }
-    //}
 
 if(gameOver)
 {
    return;
 }
 
-  if (playerXSpeed === 0 && playerYSpeed === 0 || player.shooting)
-    player.anims.pause(player.anims.currentAnim.frames[5]);
+  if (playerXSpeed === 0 && playerYSpeed === 0)
+  {
+    player.anims.pause(player.anims.currentAnim.frames[0]);
+    if(player.shooting){
+      player.anims.pause();
+      console.log(player.frame);
+      player.setFrame(4);
+    }
+  }
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
   updateStats();
