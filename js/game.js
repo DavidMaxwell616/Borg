@@ -708,14 +708,37 @@ if(gameOver)
     player.anims.pause(player.anims.currentAnim.frames[0]);
     if(player.shooting){
       player.anims.pause();
-      console.log(player.frame);
-      player.setFrame(4);
+      getPlayerShootFrame();
     }
   }
   player.setVelocityX(playerXSpeed);
   player.setVelocityY(playerYSpeed);
   updateStats();
   moveEnemies(this);
+}
+
+function getPlayerShootFrame(){
+
+if(bulletDirection.xv==0)
+  player.setFrame(7);
+else 
+{
+  switch (bulletDirection.yv) {
+    case 0:
+      player.setFrame(4);
+      break;
+    case -5:
+      player.setFrame(5);
+      break;
+    case 5:
+        player.setFrame(6);
+        break;
+    default:
+      break;
+  }
+if(bulletDirection.xv<0)
+  player.flipX = true;
+}
 }
 
 function clearLevel() {
