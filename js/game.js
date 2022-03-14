@@ -373,9 +373,14 @@ function guardShoot(guard) {
     xBulletSpeed = -xBulletSpeed;
     xOffset = -guard.width / 2;
   }
-  if (player.y >= guard.y) {
+
+if (player.y>guard.y+(guard.height/2) && player.y<guard.y-(guard.height/2)){
+  yOffset = 0;
+}
+
+else if (player.y >= guard.y+(guard.height/2)) {
     yOffset = guard.height / 2;
-  } else {
+  } else if (player.y <= guard.y-(guard.height/2)){
     yBulletSpeed = -yBulletSpeed;
     yOffset = -guard.height / 2;
   }
@@ -502,7 +507,7 @@ function buildLevel() {
   {
     boss = _scene.matter.add.sprite(width*.66, 200, 'boss');
     boss.body.label = 'boss';
-    boss.setCollisionCategory(cat4);
+    boss.setCollisionCategory(cat5);
     boss.setFixedRotation();
   }
 }

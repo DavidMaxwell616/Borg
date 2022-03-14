@@ -7,6 +7,7 @@ let levels;
 let playIntro = true;
 let score = 0;
 let scoreText;
+let highScoreText;
 let lives = 3;
 const borgTIMERLENGTH = 100;
 let livesText;
