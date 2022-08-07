@@ -571,6 +571,7 @@ function spawnBorg(){
   borg.setCollidesWith([cat5,cat4]);
   borg.setFixedRotation();
   borg.setPosition(borgXStart, borgYStart);
+  _scene.sound.play('sound1');
   borgAlive = true;
 }
 

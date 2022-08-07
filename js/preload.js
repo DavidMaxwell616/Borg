@@ -52,6 +52,11 @@ function preload() {
   }, );
   this.load.path = '../assets/json/';
   this.load.json('levelData', 'level_data.json');
+
+  this.load.path = '../assets/sounds/';
+  this.load.audio('sound1', 'borg.wav');
+  this.load.audio('sound2', 'fry player.wav');
+  this.load.audio('sound3', 'laser blast.wav');
 }
 
 function showLoader(game) {
